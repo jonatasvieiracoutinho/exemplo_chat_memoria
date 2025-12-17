@@ -88,6 +88,16 @@ class ChatComMemoria:
                 ) from e
             raise
 
+        # Validar Base URL (opcional)
+        self.base_url = os.getenv("OPENAI_BASE_URL")
+        if self.base_url:
+            # Validar formato básico de URL
+            if not (self.base_url.startswith("http://") or self.base_url.startswith("https://")):
+                raise ValueError(
+                    f"OPENAI_BASE_URL inválida: '{self.base_url}'. "
+                    f"A URL deve começar com http:// ou https://"
+                )
+
         # Configurações opcionais de gerenciamento de memória
         # Prioridade: parâmetro do construtor > .env > None (desabilitado)
         
@@ -113,7 +123,10 @@ class ChatComMemoria:
             self.modo_debug = modo_debug
         
         # Inicializar cliente
-        self.client = OpenAI(api_key=self.api_key)
+        if self.base_url:
+            self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
+        else:
+            self.client = OpenAI(api_key=self.api_key)
         self.historico = []
         self.system_prompt = "Você é um assistente útil e amigável."
         
@@ -134,6 +147,8 @@ class ChatComMemoria:
         print(f"Memoria ativa: histórico será mantido durante a sessão")
         
         # Informar configurações de gerenciamento
+        if self.base_url:
+            print(f"Base URL: {self.base_url}")
         if self.tamanho_janela:
             print(f"Sliding Window: {self.tamanho_janela} pares de mensagens")
         if self.limite_maximo:

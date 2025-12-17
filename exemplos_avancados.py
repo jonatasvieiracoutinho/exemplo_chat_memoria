@@ -395,6 +395,63 @@ def exemplo_modo_debug():
     print("  • Análise de custos e uso de tokens\n")
 
 
+def exemplo_base_url_customizada():
+    """Demonstra uso de URL customizada para provedores alternativos"""
+    
+    print("\n" + "="*60)
+    print("EXEMPLO: URL CUSTOMIZADA (PROVEDORES ALTERNATIVOS)")
+    print("="*60 + "\n")
+    
+    print("Este exemplo demonstra como configurar URLs customizadas")
+    print("para usar provedores compatíveis com o padrão OpenAI.\n")
+    
+    print("CASOS DE USO COMUNS:\n")
+    
+    print("1. Azure OpenAI Service")
+    print("   .env:")
+    print("   OPENAI_BASE_URL=https://seu-recurso.openai.azure.com")
+    print("   OPENAI_API_KEY=sua-chave-azure")
+    print("   OPENAI_MODEL=gpt-4o-mini\n")
+    
+    print("2. Ollama (modelos locais)")
+    print("   .env:")
+    print("   OPENAI_BASE_URL=http://localhost:11434/v1")
+    print("   OPENAI_API_KEY=ollama")
+    print("   OPENAI_MODEL=llama2\n")
+    
+    print("3. LM Studio (desenvolvimento local)")
+    print("   .env:")
+    print("   OPENAI_BASE_URL=http://localhost:1234/v1")
+    print("   OPENAI_API_KEY=lm-studio")
+    print("   OPENAI_MODEL=local-model\n")
+    
+    print("-"*60)
+    print("\nCOMO FUNCIONA:")
+    print("- Se OPENAI_BASE_URL não estiver configurada → OpenAI padrão")
+    print("- Se OPENAI_BASE_URL estiver configurada → Provedor customizado")
+    print("- A URL deve começar com http:// ou https://")
+    print("- A maioria dos provedores requer /v1 no final da URL\n")
+    
+    print("-"*60)
+    print("\nVANTAGENS:")
+    print("✓ Testar modelos locais sem custo")
+    print("✓ Usar Azure OpenAI em ambientes corporativos")
+    print("✓ Compatibilidade com múltiplos provedores")
+    print("✓ Mesma interface de código para diferentes backends\n")
+    
+    print("-"*60)
+    print("\nPASSOS PARA USAR:")
+    print("1. Configure o provedor desejado (Ollama, LM Studio, etc)")
+    print("2. Adicione OPENAI_BASE_URL no arquivo .env")
+    print("3. Ajuste OPENAI_MODEL para o modelo disponível")
+    print("4. Execute normalmente - o código se adapta automaticamente\n")
+    
+    print("="*60)
+    print("Nota: Este exemplo é informativo. Para usar,")
+    print("configure as variáveis no .env e execute o chat normalmente.")
+    print("="*60 + "\n")
+
+
 def menu_exemplos():
     """Menu interativo para escolher exemplos"""
     
@@ -408,7 +465,8 @@ def menu_exemplos():
         "7": ("Monitoramento Automático", exemplo_monitoramento_automatico),
         "8": ("Sistema Completo", exemplo_sistema_completo),
         "9": ("Modo Debug", exemplo_modo_debug),
-        "10": ("Executar Todos", lambda: None)
+        "10": ("URL Customizada", exemplo_base_url_customizada),
+        "11": ("Executar Todos", lambda: None)
     }
     
     print("\n" + "="*60)
@@ -428,15 +486,15 @@ def menu_exemplos():
             print("Encerrando...")
             break
         
-        if escolha == "10":
+        if escolha == "11":
             print("\nExecutando todos os exemplos...\n")
-            for key in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
+            for key in ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]:
                 exemplos[key][1]()
                 time.sleep(2)
             print("\nTodos os exemplos executados!")
             break
         
-        if escolha in exemplos and escolha != "10":
+        if escolha in exemplos and escolha != "11":
             try:
                 exemplos[escolha][1]()
                 input("\nPressione Enter para continuar...")
@@ -461,6 +519,7 @@ if __name__ == "__main__":
             "--monitoramento": exemplo_monitoramento_automatico,
             "--completo": exemplo_sistema_completo,
             "--debug": exemplo_modo_debug,
+            "--baseurl": exemplo_base_url_customizada,
             "--todos": lambda: [
                 exemplo_multiplas_personalidades(),
                 exemplo_controle_contexto(),
@@ -470,7 +529,8 @@ if __name__ == "__main__":
                 exemplo_janela_deslizante(),
                 exemplo_monitoramento_automatico(),
                 exemplo_sistema_completo(),
-                exemplo_modo_debug()
+                exemplo_modo_debug(),
+                exemplo_base_url_customizada()
             ]
         }
         

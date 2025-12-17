@@ -177,6 +177,50 @@ OPENAI_MAX_TOKENS=1000
   - `2000` - Respostas longas
 - **Exemplo:** `1000`
 
+#### OPENAI_BASE_URL
+
+- **Obrigatório:** Não
+- **Formato:** URL completa começando com `http://` ou `https://`
+- **Descrição:** URL base customizada para conectar a provedores compatíveis com o padrão OpenAI
+- **Quando usar:**
+  - **Azure OpenAI Service** - Usar endpoint do seu recurso Azure
+  - **Ollama** - Executar modelos localmente
+  - **LM Studio** - Testar modelos locais
+  - **Outros provedores** - Qualquer serviço compatível com API OpenAI
+- **Se não configurada:** Usa o endpoint padrão da OpenAI (`https://api.openai.com/v1`)
+- **Exemplos:**
+  - Azure: `https://seu-recurso.openai.azure.com`
+  - Ollama: `http://localhost:11434/v1`
+  - LM Studio: `http://localhost:1234/v1`
+
+**Casos de uso comuns:**
+
+1. **Azure OpenAI Service**
+   ```env
+   OPENAI_BASE_URL=https://seu-recurso.openai.azure.com
+   OPENAI_API_KEY=sua-chave-azure
+   OPENAI_MODEL=gpt-4o-mini  # ou modelo disponível no Azure
+   ```
+
+2. **Ollama (modelos locais)**
+   ```env
+   OPENAI_BASE_URL=http://localhost:11434/v1
+   OPENAI_API_KEY=ollama  # Ollama não valida a key, mas é obrigatória
+   OPENAI_MODEL=llama2  # ou outro modelo instalado no Ollama
+   ```
+
+3. **LM Studio (desenvolvimento local)**
+   ```env
+   OPENAI_BASE_URL=http://localhost:1234/v1
+   OPENAI_API_KEY=lm-studio  # LM Studio não valida, mas é obrigatória
+   OPENAI_MODEL=local-model  # modelo carregado no LM Studio
+   ```
+
+⚠️ **Importante:** 
+- A URL deve terminar com `/v1` para a maioria dos provedores
+- Verifique a documentação do seu provedor para detalhes específicos
+- Para serviços locais (Ollama, LM Studio), certifique-se de que o servidor está rodando
+
 ### 4.4 Validação Manual
 
 Após criar o `.env`, verifique:
@@ -185,6 +229,7 @@ Após criar o `.env`, verifique:
 ✅ API key está no formato correto  
 ✅ Temperature está entre 0.0 e 2.0  
 ✅ Max tokens é um número inteiro positivo  
+✅ Base URL (se configurada) começa com http:// ou https://  
 ✅ Não há espaços antes ou depois do `=`  
 
 ---
@@ -234,6 +279,7 @@ Se encontrar erros, consulte o [TROUBLESHOOTING.md](TROUBLESHOOTING.md) para sol
 | `OPENAI_API_KEY não encontrada` | Variável não definida no .env |
 | `OPENAI_TEMPERATURE deve estar entre 0.0 e 2.0` | Valor inválido para temperature |
 | `OPENAI_MAX_TOKENS deve ser um número inteiro positivo` | Valor inválido para max_tokens |
+| `OPENAI_BASE_URL inválida` | URL não começa com http:// ou https:// |
 | `AuthenticationError` | API key inválida ou expirada |
 
 ---
