@@ -10,6 +10,9 @@ env/
 conversa_*.txt
 exemplo_conversa.txt
 
+# Logs de debug
+logs/
+
 # Cache Python
 __pycache__/
 *.py[cod]

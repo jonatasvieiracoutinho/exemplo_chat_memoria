@@ -73,7 +73,7 @@ def exemplo_controle_contexto():
     # Muda de tópico - limpa contexto
     print("-"*60)
     print("\nMudando de tópico - limpando contexto anterior\n")
-    chat.limpar_memoria()
+    chat.limpar_historico()
     
     # Segunda conversa sobre JavaScript
     print("TÓPICO 2: JavaScript")
@@ -215,6 +215,186 @@ print(processar_dados(numeros))
     print("="*60 + "\n")
 
 
+def exemplo_janela_deslizante():
+    """Demonstra o funcionamento do sliding window automático"""
+    
+    print("\n" + "="*60)
+    print("EXEMPLO: SLIDING WINDOW (JANELA DESLIZANTE)")
+    print("="*60 + "\n")
+    
+    # Cria chat com janela pequena para demonstração
+    chat = ChatComMemoria(tamanho_janela=3)  # Mantém apenas 3 pares (6 mensagens)
+    
+    print("Configuração: Janela de 3 pares (máximo 6 mensagens)\n")
+    print("-"*60 + "\n")
+    
+    # Envia várias mensagens para demonstrar a janela
+    perguntas = [
+        "Qual é a capital da França?",
+        "E da Alemanha?",
+        "E da Itália?",
+        "E da Espanha?",
+        "E de Portugal?",
+    ]
+    
+    for i, pergunta in enumerate(perguntas, 1):
+        print(f"[Mensagem {i}] {pergunta}")
+        resposta = chat.enviar_mensagem(pergunta)
+        print(f"Resposta: {resposta[:80]}...")
+        print(f"Total no histórico: {len(chat.historico)} mensagens\n")
+    
+    print("-"*60)
+    print("\nOBSERVAÇÕES:")
+    print("• Após a 4ª pergunta, o histórico para de crescer")
+    print("• As mensagens mais antigas são automaticamente removidas")
+    print("• Apenas as últimas 3 pares (6 mensagens) são mantidas")
+    print("• Isso reduz custos e mantém o contexto recente\n")
+    
+    chat.debug_memoria()
+
+
+def exemplo_monitoramento_automatico():
+    """Demonstra o sistema de monitoramento de tokens"""
+    
+    print("\n" + "="*60)
+    print("EXEMPLO: MONITORAMENTO AUTOMÁTICO DE TOKENS")
+    print("="*60 + "\n")
+    
+    # Cria chat com limite baixo para demonstração
+    chat = ChatComMemoria(limite_maximo=300)
+    
+    print("Configuração: Limite de 300 tokens\n")
+    print("Níveis de alerta:")
+    print("  🟢 Verde: 0-100 tokens (0-33%)")
+    print("  🟡 Amarelo: 100-200 tokens (33-66%)")
+    print("  🟠 Laranja: 200-300 tokens (66-99%)")
+    print("  🔴 Vermelho: ≥300 tokens (≥100% - CRÍTICO)\n")
+    print("-"*60 + "\n")
+    
+    # Envia mensagens gradualmente
+    perguntas = [
+        "Me explique o que é Python em poucas palavras.",
+        "Quais são os principais tipos de dados em Python?",
+        "Como funcionam as listas em Python?",
+        "Explique o conceito de dicionários em Python.",
+        "O que são funções em Python e como criá-las?",
+    ]
+    
+    for i, pergunta in enumerate(perguntas, 1):
+        print(f"\n[Pergunta {i}] {pergunta}")
+        resposta = chat.enviar_mensagem(pergunta)
+        print(f"Resposta recebida: {len(resposta)} caracteres")
+        
+        # O alerta será exibido automaticamente por enviar_mensagem()
+    
+    print("\n" + "-"*60)
+    print("\nStatus final:")
+    chat.debug_memoria()
+    
+    print("OBSERVAÇÕES:")
+    print("• Os alertas aparecem automaticamente conforme tokens aumentam")
+    print("• No nível vermelho, o sistema recomenda ação (limpar ou ajustar janela)")
+    print("• Combine com sliding window para gerenciamento automático\n")
+
+
+def exemplo_sistema_completo():
+    """Demonstra uso de sliding window + monitoramento juntos"""
+    
+    print("\n" + "="*60)
+    print("EXEMPLO: SISTEMA COMPLETO (SLIDING WINDOW + MONITORAMENTO)")
+    print("="*60 + "\n")
+    
+    # Cria chat com ambas funcionalidades
+    chat = ChatComMemoria(tamanho_janela=4, limite_maximo=400)
+    
+    print("Configuração otimizada:")
+    print("  • Sliding Window: 4 pares (8 mensagens)")
+    print("  • Monitoramento: 400 tokens")
+    print("\nEsta é a configuração recomendada para uso geral!\n")
+    print("-"*60 + "\n")
+    
+    # Simula conversa longa
+    perguntas = [
+        "O que é aprendizado de máquina?",
+        "Quais são os tipos principais?",
+        "Explique aprendizado supervisionado",
+        "E o não supervisionado?",
+        "O que é deep learning?",
+        "Como funciona uma rede neural?",
+    ]
+    
+    for i, pergunta in enumerate(perguntas, 1):
+        print(f"\n{'='*60}")
+        print(f"INTERAÇÃO {i}")
+        print('='*60)
+        print(f"Você: {pergunta}\n")
+        
+        resposta = chat.enviar_mensagem(pergunta)
+        print(f"Assistente: {resposta[:150]}...\n")
+    
+    print("\n" + "="*60)
+    print("RESULTADO FINAL:")
+    print("="*60 + "\n")
+    
+    chat.debug_memoria()
+    chat.grafico_tokens()
+    
+    print("BENEFÍCIOS DO SISTEMA COMPLETO:")
+    print("  ✓ Sliding window mantém memória controlada")
+    print("  ✓ Monitoramento alerta sobre uso de tokens")
+    print("  ✓ Custos previsíveis e controlados")
+    print("  ✓ Contexto relevante sempre disponível")
+    print("  ✓ Sem necessidade de intervenção manual\n")
+
+
+def exemplo_modo_debug():
+    """Demonstra o modo debug com logging detalhado"""
+    
+    print("\n" + "="*60)
+    print("EXEMPLO: MODO DEBUG COM LOGGING")
+    print("="*60 + "\n")
+    
+    # Cria chat com modo debug ativo
+    chat = ChatComMemoria(
+        tamanho_janela=3,
+        limite_maximo=300,
+        modo_debug=True
+    )
+    
+    print("Modo Debug ATIVO")
+    print(f"Arquivo de log: {chat.arquivo_log}\n")
+    print("-"*60 + "\n")
+    
+    # Envia algumas mensagens
+    print("Enviando mensagens para gerar log...\n")
+    
+    chat.enviar_mensagem("Olá! Como você está?")
+    chat.enviar_mensagem("Me explique o que é uma lista em Python")
+    chat.enviar_mensagem("E um dicionário?")
+    
+    print("\n" + "-"*60)
+    print("\nConversação concluída!")
+    print(f"\nVerifique o arquivo de log para ver detalhes completos:")
+    print(f"  📄 {chat.arquivo_log}\n")
+    
+    chat.debug_memoria()
+    
+    print("O QUE O LOG CONTÉM:")
+    print("  • Timestamp de cada interação")
+    print("  • Mensagem do usuário")
+    print("  • System prompt utilizado")
+    print("  • Parâmetros do modelo (temperature, max_tokens, etc)")
+    print("  • Histórico completo antes da nova mensagem")
+    print("  • Resposta do assistente")
+    print("  • Status de memória (tokens, janela, alertas)")
+    print("  • Ações executadas (sliding window, limpeza, etc)")
+    print("\nÚTIL PARA:")
+    print("  • Debugging de problemas")
+    print("  • Auditoria de conversas")
+    print("  • Aprendizado sobre gerenciamento de memória")
+    print("  • Análise de custos e uso de tokens\n")
+
+
 def menu_exemplos():
     """Menu interativo para escolher exemplos"""
     
@@ -224,7 +404,11 @@ def menu_exemplos():
         "3": ("Conversa Longa", exemplo_conversa_longa),
         "4": ("Tratamento de Erros", exemplo_tratamento_erros),
         "5": ("Análise de Código", exemplo_analise_codigo),
-        "6": ("Executar Todos", lambda: None)
+        "6": ("Sliding Window", exemplo_janela_deslizante),
+        "7": ("Monitoramento Automático", exemplo_monitoramento_automatico),
+        "8": ("Sistema Completo", exemplo_sistema_completo),
+        "9": ("Modo Debug", exemplo_modo_debug),
+        "10": ("Executar Todos", lambda: None)
     }
     
     print("\n" + "="*60)
@@ -244,15 +428,15 @@ def menu_exemplos():
             print("Encerrando...")
             break
         
-        if escolha == "6":
+        if escolha == "10":
             print("\nExecutando todos os exemplos...\n")
-            for key in ["1", "2", "3", "4", "5"]:
+            for key in ["1", "2", "3", "4", "5", "6", "7", "8", "9"]:
                 exemplos[key][1]()
                 time.sleep(2)
-            print("\nTodos os exemplos executados")
+            print("\nTodos os exemplos executados!")
             break
         
-        if escolha in exemplos and escolha != "6":
+        if escolha in exemplos and escolha != "10":
             try:
                 exemplos[escolha][1]()
                 input("\nPressione Enter para continuar...")
@@ -273,12 +457,20 @@ if __name__ == "__main__":
             "--longa": exemplo_conversa_longa,
             "--erros": exemplo_tratamento_erros,
             "--analise": exemplo_analise_codigo,
+            "--janela": exemplo_janela_deslizante,
+            "--monitoramento": exemplo_monitoramento_automatico,
+            "--completo": exemplo_sistema_completo,
+            "--debug": exemplo_modo_debug,
             "--todos": lambda: [
                 exemplo_multiplas_personalidades(),
                 exemplo_controle_contexto(),
                 exemplo_conversa_longa(),
                 exemplo_tratamento_erros(),
-                exemplo_analise_codigo()
+                exemplo_analise_codigo(),
+                exemplo_janela_deslizante(),
+                exemplo_monitoramento_automatico(),
+                exemplo_sistema_completo(),
+                exemplo_modo_debug()
             ]
         }
         
