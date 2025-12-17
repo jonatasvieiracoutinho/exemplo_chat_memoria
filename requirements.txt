@@ -1,0 +1,8 @@
+# Dependências para Chat com OpenAI API
+
+# Cliente oficial da OpenAI
+openai>=1.12.0
+
+# Gerenciamento de variáveis de ambiente
+python-dotenv>=1.0.0
+
