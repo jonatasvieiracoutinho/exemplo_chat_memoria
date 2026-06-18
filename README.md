@@ -12,7 +12,7 @@ Este projeto é voltado para **estudantes de IA Generativa** que desejam entende
 
 | Documento | Descrição |
 |-----------|-----------|
-| 📦 [INSTALACAO.md](docs/INSTALACAO.md) | Guia completo de instalação com Miniconda e configuração do ambiente |
+| 📦 [INSTALACAO.md](docs/INSTALACAO.md) | Guia completo de instalação com venv e configuração do ambiente |
 | 📚 [CONCEITOS.md](docs/CONCEITOS.md) | Fundamentos de memória conversacional, temperature e max tokens |
 
 ### Uso e Desenvolvimento
@@ -42,9 +42,10 @@ Este projeto é voltado para **estudantes de IA Generativa** que desejam entende
 ### 1. Instalar
 
 ```bash
-# Criar ambiente conda
-conda create -n chat_memoria python=3.11 -y
-conda activate chat_memoria
+# Criar e ativar ambiente virtual (venv)
+python -m venv .venv
+# Windows (CMD/PowerShell): .venv\Scripts\activate
+# Linux/macOS:              source .venv/bin/activate
 
 # Instalar dependências
 pip install -r requirements.txt

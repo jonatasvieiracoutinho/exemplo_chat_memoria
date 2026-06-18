@@ -488,14 +488,14 @@ Dependências não instaladas ou ambiente errado.
 
 #### Solução
 
-**Passo 1:** Verificar ambiente ativo
+**Passo 1:** Ativar o ambiente virtual do projeto
 
 ```bash
-# Verificar qual ambiente está ativo
-conda env list
+# Windows (CMD/PowerShell)
+.venv\Scripts\activate
 
-# Ativar ambiente correto
-conda activate chat_memoria
+# Linux/macOS
+source .venv/bin/activate
 ```
 
 **Passo 2:** Instalar dependências
@@ -833,7 +833,7 @@ Ao encontrar um erro, siga esta ordem:
 - [ ] 4. `OPENAI_TEMPERATURE` está entre 0.0 e 2.0?
 - [ ] 5. `OPENAI_MAX_TOKENS` é inteiro positivo?
 - [ ] 6. Dependências instaladas? (`pip list`)
-- [ ] 7. Ambiente conda ativo? (`conda env list`)
+- [ ] 7. Ambiente virtual (.venv) ativo?
 - [ ] 8. API key válida no dashboard OpenAI?
 - [ ] 9. Créditos disponíveis na conta?
 - [ ] 10. Internet funcionando?

@@ -5,8 +5,8 @@ Guia completo para configurar o ambiente e executar o chat com memória.
 ## Índice
 
 - [Pré-requisitos](#pré-requisitos)
-- [Passo 1: Instalar o Miniconda](#passo-1-instalar-o-miniconda)
-- [Passo 2: Criar Ambiente Conda](#passo-2-criar-ambiente-conda)
+- [Passo 1: Instalar o Python](#passo-1-instalar-o-python)
+- [Passo 2: Criar Ambiente Virtual (venv)](#passo-2-criar-ambiente-virtual-venv)
 - [Passo 3: Instalar Dependências](#passo-3-instalar-dependências)
 - [Passo 4: Configurar Variáveis de Ambiente](#passo-4-configurar-variáveis-de-ambiente)
 - [Passo 5: Verificar Instalação](#passo-5-verificar-instalação)
@@ -21,62 +21,73 @@ Guia completo para configurar o ambiente e executar o chat com memória.
 
 ---
 
-## Passo 1: Instalar o Miniconda
+## Passo 1: Instalar o Python
 
-O Miniconda é uma versão mínima do Anaconda que permite gerenciar ambientes Python isolados.
+O projeto usa o módulo `venv` da biblioteca padrão do Python para criar ambientes isolados, então basta ter o Python instalado (versão 3.11 ou superior recomendada).
 
 ### Download
 
 Acesse o site oficial e baixe o instalador para seu sistema:
 
-**🔗 [https://docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)**
+**🔗 [https://www.python.org/downloads/](https://www.python.org/downloads/)**
 
 ### Instalação por Sistema Operacional
 
 #### Windows
 
 1. Execute o instalador `.exe` baixado
-2. Siga o assistente de instalação
-3. ✅ Marque a opção "Add Miniconda3 to PATH" (recomendado)
+2. ✅ Marque a opção "Add Python to PATH" (recomendado)
+3. Siga o assistente de instalação
 4. Conclua a instalação
-5. Abra o **Anaconda Prompt** ou **CMD/PowerShell**
+5. Abra o **CMD** ou **PowerShell**
 
 #### Linux/macOS
 
-```bash
-# Após baixar o instalador .sh
-chmod +x Miniconda3-latest-Linux-x86_64.sh  # ou macOS equivalente
-./Miniconda3-latest-Linux-x86_64.sh
+O Python normalmente já vem instalado. Caso precise instalar ou atualizar:
 
-# Siga as instruções no terminal
-# Aceite a licença e confirme a localização da instalação
+```bash
+# Debian/Ubuntu (inclui o módulo venv)
+sudo apt update && sudo apt install python3 python3-venv
+
+# macOS (via Homebrew)
+brew install python
 ```
 
 ### Verificar Instalação
 
 ```bash
-conda --version
-# Saída esperada: conda 24.x.x (ou similar)
+python --version
+# Saída esperada: Python 3.11.x (ou superior)
+# Em alguns sistemas Linux/macOS use: python3 --version
 ```
 
 ---
 
-## Passo 2: Criar Ambiente Conda
+## Passo 2: Criar Ambiente Virtual (venv)
 
-Crie um ambiente isolado para o projeto:
+Crie um ambiente isolado dentro da pasta do projeto:
 
 ```bash
-# Criar ambiente com Python 3.11
-conda create -n chat_memoria python=3.11 -y
+# Navegar para o diretório do projeto
+cd c:\python_projects\exemplo_chat_memoria  # Windows
+# ou
+cd ~/python_projects/exemplo_chat_memoria   # Linux/macOS
 
-# Ativar o ambiente
-conda activate chat_memoria
+# Criar o ambiente virtual na pasta .venv
+python -m venv .venv
 ```
 
-**📌 Nota:** Você precisará ativar o ambiente sempre que for usar o projeto:
+Ative o ambiente:
+
 ```bash
-conda activate chat_memoria
+# Windows (CMD/PowerShell)
+.venv\Scripts\activate
+
+# Linux/macOS
+source .venv/bin/activate
 ```
+
+**📌 Nota:** Você precisará ativar o ambiente sempre que for usar o projeto. No Windows, o atalho `iniciar_chat.bat` na raiz do projeto ativa o `.venv` e executa o chat automaticamente.
 
 ---
 
@@ -300,8 +311,12 @@ Para remover o ambiente:
 
 ```bash
 # Desativar ambiente
-conda deactivate
+deactivate
 
-# Remover ambiente
-conda env remove -n chat_memoria
+# Remover ambiente (basta apagar a pasta .venv)
+# Windows (PowerShell)
+Remove-Item -Recurse -Force .venv
+
+# Linux/macOS
+rm -rf .venv
 ```
