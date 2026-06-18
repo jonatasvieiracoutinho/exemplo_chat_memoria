@@ -53,6 +53,58 @@ class _Paleta:
 _C = _Paleta()
 
 
+# ============================================================
+#  Camada de Backend — Abstração da chamada ao modelo
+# ============================================================
+
+class _BackendOpenAI:
+    """Backend para a API da OpenAI (e provedores compatíveis via base_url)."""
+
+    def __init__(self, *, api_key, base_url, modelo):
+        if base_url:
+            self.client = OpenAI(api_key=api_key, base_url=base_url)
+        else:
+            self.client = OpenAI(api_key=api_key)
+        self.modelo = modelo
+
+    def _usa_parametros_reasoning(self) -> bool:
+        """
+        Indica se o modelo configurado pertence à família de reasoning da OpenAI
+        (gpt-5*, o1*, o3*, o4*).
+
+        Esses modelos mudaram o contrato da API: exigem 'max_completion_tokens'
+        no lugar de 'max_tokens' e só aceitam o valor padrão de temperature (1),
+        rejeitando qualquer outro com erro 400.
+        """
+        modelo = self.modelo.lower()
+        return modelo.startswith(("gpt-5", "o1", "o3", "o4"))
+
+    def gerar(self, *, system_prompt, historico, temperature, max_tokens, stream) -> str:
+        """Chama o modelo. Em stream=True, imprime os deltas e retorna o texto acumulado."""
+        mensagens = [{"role": "system", "content": system_prompt}] + historico
+        parametros = {"model": self.modelo, "messages": mensagens}
+        if self._usa_parametros_reasoning():
+            parametros["max_completion_tokens"] = max_tokens
+        else:
+            parametros["temperature"] = temperature
+            parametros["max_tokens"] = max_tokens
+
+        if stream:
+            parametros["stream"] = True
+            texto = ""
+            for chunk in self.client.chat.completions.create(**parametros):
+                if not chunk.choices:
+                    continue
+                delta = chunk.choices[0].delta.content
+                if delta:
+                    print(delta, end="", flush=True)
+                    texto += delta
+            return texto
+
+        resposta = self.client.chat.completions.create(**parametros)
+        return resposta.choices[0].message.content
+
+
 def pintar(texto: str, cor: str) -> str:
     """Envolve um texto com uma cor ANSI e garante o reset ao final."""
     return f"{cor}{texto}{_C.RESET}"
@@ -219,11 +271,10 @@ class ChatComMemoria:
         else:
             self.stream = stream
 
-        # Inicializar cliente
-        if self.base_url:
-            self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
-        else:
-            self.client = OpenAI(api_key=self.api_key)
+        # Inicializar backend
+        self.backend = _BackendOpenAI(
+            api_key=self.api_key, base_url=self.base_url, modelo=self.modelo
+        )
         self.historico = []
         self.system_prompt = "Você é um assistente confiável. Se não tiver certeza das fontes de seus dados, diga que não sabe. É melhor não responder do que responder errado."
         
@@ -494,18 +545,6 @@ class ChatComMemoria:
         
         return False
 
-    def _usa_parametros_reasoning(self) -> bool:
-        """
-        Indica se o modelo configurado pertence à família de reasoning da OpenAI
-        (gpt-5*, o1*, o3*, o4*).
-
-        Esses modelos mudaram o contrato da API: exigem 'max_completion_tokens'
-        no lugar de 'max_tokens' e só aceitam o valor padrão de temperature (1),
-        rejeitando qualquer outro com erro 400.
-        """
-        modelo = self.modelo.lower()
-        return modelo.startswith(("gpt-5", "o1", "o3", "o4"))
-
     def enviar_mensagem(self, mensagem: str) -> str:
         """
         Envia mensagem para a API mantendo o contexto completo.
@@ -529,34 +568,13 @@ class ChatComMemoria:
         ] + self.historico
         
         try:
-            # Monta os parâmetros conforme o contrato da API do modelo.
-            # Modelos de reasoning (gpt-5*, o-series) usam 'max_completion_tokens'
-            # e não aceitam 'temperature' customizada (somente o padrão 1).
-            parametros = {
-                "model": self.modelo,
-                "messages": mensagens,
-            }
-            if self._usa_parametros_reasoning():
-                parametros["max_completion_tokens"] = self.max_tokens
-            else:
-                parametros["temperature"] = self.temperature
-                parametros["max_tokens"] = self.max_tokens
-
-            if self.stream:
-                # Streaming: imprime a resposta token a token conforme chega.
-                parametros["stream"] = True
-                resposta_texto = ""
-                for chunk in self.client.chat.completions.create(**parametros):
-                    if not chunk.choices:
-                        continue
-                    delta = chunk.choices[0].delta.content
-                    if delta:
-                        print(delta, end="", flush=True)
-                        resposta_texto += delta
-            else:
-                # Chama a API e extrai a resposta completa de uma vez
-                resposta = self.client.chat.completions.create(**parametros)
-                resposta_texto = resposta.choices[0].message.content
+            resposta_texto = self.backend.gerar(
+                system_prompt=self.system_prompt,
+                historico=self.historico,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                stream=self.stream,
+            )
 
             # Adiciona resposta ao histórico
             self.adicionar_mensagem("assistant", resposta_texto)
