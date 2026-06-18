@@ -16,7 +16,7 @@ class ChatComMemoria:
     """Classe para gerenciar chat com memória usando OpenAI API
        Todas as configurações são carregadas do arquivo .env"""
 
-    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None):
+    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None, stream: bool = None):
         """
         Inicializa o chat com memória.
 
@@ -30,6 +30,8 @@ class ChatComMemoria:
                           Se None, carrega de LIMITE_MAXIMO no .env. Se ainda None, desabilita monitoramento.
             modo_debug: Se True, gera logs detalhados em logs/chat_debug_TIMESTAMP.log.
                        Se None, carrega de MODO_DEBUG no .env. Padrão: False.
+            stream: Se True, imprime a resposta token a token conforme chega da API.
+                       Se None, carrega de OPENAI_STREAM no .env. Padrão: False.
         """
         # Carregar .env OBRIGATORIAMENTE
         load_dotenv()
@@ -121,7 +123,14 @@ class ChatComMemoria:
             self.modo_debug = debug_env == "true"
         else:
             self.modo_debug = modo_debug
-        
+
+        # Streaming de saída
+        if stream is None:
+            stream_env = os.getenv("OPENAI_STREAM", "false").lower()
+            self.stream = stream_env == "true"
+        else:
+            self.stream = stream
+
         # Inicializar cliente
         if self.base_url:
             self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
@@ -155,6 +164,8 @@ class ChatComMemoria:
             print(f"Monitoramento: limite de {self.limite_maximo} tokens")
         if self.modo_debug:
             print(f"Modo Debug: logs em {self.arquivo_log}")
+        if self.stream:
+            print(f"Streaming: resposta exibida token a token")
         print()
     
     def definir_personalidade(self, prompt: str):
@@ -439,12 +450,22 @@ class ChatComMemoria:
                 parametros["temperature"] = self.temperature
                 parametros["max_tokens"] = self.max_tokens
 
-            # Chama a API
-            resposta = self.client.chat.completions.create(**parametros)
-            
-            # Extrai resposta
-            resposta_texto = resposta.choices[0].message.content
-            
+            if self.stream:
+                # Streaming: imprime a resposta token a token conforme chega.
+                parametros["stream"] = True
+                resposta_texto = ""
+                for chunk in self.client.chat.completions.create(**parametros):
+                    if not chunk.choices:
+                        continue
+                    delta = chunk.choices[0].delta.content
+                    if delta:
+                        print(delta, end="", flush=True)
+                        resposta_texto += delta
+            else:
+                # Chama a API e extrai a resposta completa de uma vez
+                resposta = self.client.chat.completions.create(**parametros)
+                resposta_texto = resposta.choices[0].message.content
+
             # Adiciona resposta ao histórico
             self.adicionar_mensagem("assistant", resposta_texto)
             
@@ -706,7 +727,11 @@ def chat_interativo():
             try:
                 print("\nAssistente: ", end="", flush=True)
                 resposta = chat.enviar_mensagem(mensagem)
-                print(resposta + "\n")
+                # No modo streaming a resposta já foi impressa token a token
+                if chat.stream:
+                    print("\n")
+                else:
+                    print(resposta + "\n")
                 
             except Exception as e:
                 print(f"\nErro: {e}\n")
@@ -747,8 +772,13 @@ def exemplo_programatico():
     
     for pergunta in perguntas:
         print(f"VOCÊ: {pergunta}")
+        print("ASSISTENTE: ", end="", flush=True)
         resposta = chat.enviar_mensagem(pergunta)
-        print(f"ASSISTENTE: {resposta}\n")
+        # No modo streaming a resposta já foi impressa token a token
+        if chat.stream:
+            print("\n")
+        else:
+            print(f"{resposta}\n")
         print("-"*60 + "\n")
     
     # Mostra estatísticas
