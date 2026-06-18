@@ -12,6 +12,94 @@ from datetime import datetime
 from dotenv import load_dotenv
 
 
+# ============================================================
+#  Camada visual (UI) — cores e caixas para o terminal
+# ------------------------------------------------------------
+#  Usa colorama para traduzir códigos ANSI também no Windows.
+#  Se a biblioteca não estiver instalada, o chat continua
+#  funcionando normalmente, apenas sem cores (degradação graciosa).
+# ============================================================
+try:
+    from colorama import init as _iniciar_cores, Fore, Style
+    _iniciar_cores(autoreset=False)  # o reset é feito manualmente por pintar()
+except ImportError:  # colorama ausente: cada cor vira string vazia
+    class _SemCor:
+        def __getattr__(self, _nome):
+            return ""
+    Fore = Style = _SemCor()
+
+
+class _Paleta:
+    """Paleta semântica de cores e medidas usada em todo o chat."""
+
+    LARGURA = 70                            # largura padrão das caixas
+
+    USUARIO = Fore.CYAN + Style.BRIGHT      # rótulo do usuário
+    ASSISTENTE = Fore.GREEN + Style.BRIGHT  # rótulo do assistente
+    SISTEMA = Fore.MAGENTA + Style.BRIGHT   # mensagens do sistema
+
+    TITULO = Fore.WHITE + Style.BRIGHT      # títulos de caixas/seções
+    VALOR = Fore.CYAN                       # valores destacados
+    MOLDURA = Fore.BLUE                     # bordas das caixas
+    INFO = Fore.BLUE + Style.BRIGHT         # marcadores / ícones
+    DIM = Style.DIM                         # texto secundário
+
+    OK = Fore.GREEN
+    AVISO = Fore.YELLOW + Style.BRIGHT
+    ERRO = Fore.RED + Style.BRIGHT
+    RESET = Style.RESET_ALL
+
+
+_C = _Paleta()
+
+
+def pintar(texto: str, cor: str) -> str:
+    """Envolve um texto com uma cor ANSI e garante o reset ao final."""
+    return f"{cor}{texto}{_C.RESET}"
+
+
+def regua(largura: int = None, cor: str = None, char: str = "─") -> str:
+    """Devolve uma linha horizontal (régua) para separar seções."""
+    return pintar(char * (largura or _C.LARGURA), cor or _C.DIM)
+
+
+def cabecalho(titulo: str, cor: str = None, largura: int = None) -> str:
+    """Monta uma caixa de título centralizada (3 linhas), já colorida.
+
+    O padding é calculado sobre o texto sem cor, garantindo o alinhamento
+    das bordas mesmo com os códigos ANSI embutidos.
+    """
+    cor = cor or _C.MOLDURA
+    largura = largura or _C.LARGURA
+    interno = largura - 2
+    texto = f" {titulo.strip()} "[:interno]
+    espaco = interno - len(texto)
+    esq = espaco // 2
+    dirr = espaco - esq
+    topo = pintar("╔" + "═" * interno + "╗", cor)
+    meio = (pintar("║", cor) + " " * esq + pintar(texto, _C.TITULO)
+            + " " * dirr + pintar("║", cor))
+    base = pintar("╚" + "═" * interno + "╝", cor)
+    return f"{topo}\n{meio}\n{base}"
+
+
+def item(rotulo: str, valor, cor_valor: str = None) -> str:
+    """Formata uma linha 'marcador rótulo: valor' com cores."""
+    marcador = pintar("•", _C.INFO)
+    return (f"  {marcador} {pintar(str(rotulo) + ':', _C.DIM)} "
+            f"{pintar(str(valor), cor_valor or _C.VALOR)}")
+
+
+def cor_por_nivel(emoji: str) -> str:
+    """Mapeia o emoji de nível de tokens para a cor ANSI correspondente."""
+    return {
+        "🔴": _C.ERRO,
+        "🟠": Fore.RED,
+        "🟡": _C.AVISO,
+        "🟢": _C.OK,
+    }.get(emoji, "")
+
+
 class ChatComMemoria:
     """Classe para gerenciar chat com memória usando OpenAI API
        Todas as configurações são carregadas do arquivo .env"""
@@ -149,23 +237,26 @@ class ChatComMemoria:
             self.arquivo_log = f"logs/chat_debug_{timestamp}.log"
             self._inicializar_log()
 
-        # Mensagem com configurações REAIS do .env
-        print(f"Chat inicializado com modelo: {self.modelo}")
-        print(f"Temperature: {self.temperature}")
-        print(f"Max Tokens: {self.max_tokens}")
-        print(f"Memoria ativa: histórico será mantido durante a sessão")
-        
-        # Informar configurações de gerenciamento
+        # Resumo visual com as configurações REAIS do .env
+        print(pintar("  Configuração ativa", _C.TITULO))
+        print(regua())
+        print(item("Modelo", self.modelo))
+        print(item("Temperature", self.temperature))
+        print(item("Max tokens", self.max_tokens))
+        print(item("Memória", "histórico mantido durante a sessão"))
+
+        # Configurações opcionais de gerenciamento
         if self.base_url:
-            print(f"Base URL: {self.base_url}")
+            print(item("Base URL", self.base_url))
         if self.tamanho_janela:
-            print(f"Sliding Window: {self.tamanho_janela} pares de mensagens")
+            print(item("Sliding window", f"{self.tamanho_janela} pares de mensagens"))
         if self.limite_maximo:
-            print(f"Monitoramento: limite de {self.limite_maximo} tokens")
+            print(item("Monitoramento", f"limite de {self.limite_maximo} tokens"))
         if self.modo_debug:
-            print(f"Modo Debug: logs em {self.arquivo_log}")
+            print(item("Modo debug", f"logs em {self.arquivo_log}"))
         if self.stream:
-            print(f"Streaming: resposta exibida token a token")
+            print(item("Streaming", "resposta exibida token a token"))
+        print(regua())
         print()
     
     def definir_personalidade(self, prompt: str):
@@ -176,7 +267,8 @@ class ChatComMemoria:
             prompt: Instrução de sistema para definir comportamento do assistente
         """
         self.system_prompt = prompt
-        print(f"Personalidade definida: {prompt[:50]}...\n")
+        print(pintar("  ✦ Personalidade definida", _C.SISTEMA)
+              + pintar(f" — {prompt[:50]}...", _C.DIM) + "\n")
         
         if self.modo_debug:
             self._registrar_log(f"\n{'─'*70}\n[SYSTEM PROMPT ATUALIZADO]\n{'─'*70}\n{prompt}\n")
@@ -476,11 +568,13 @@ class ChatComMemoria:
             # Contagem de tokens depois
             tokens_depois = self.contar_tokens_aproximado()
             
-            # Verifica alertas de tokens
+            # Verifica alertas de tokens (cor conforme o nível de uso)
             alertas = self._verificar_tokens(tokens_depois)
             if alertas:
+                cor_alerta = cor_por_nivel(self._calcular_nivel_alerta(tokens_depois))
+                print()
                 for alerta in alertas:
-                    print(f"\n⚠️  {alerta}")
+                    print(pintar(f"  ⚠  {alerta}", cor_alerta))
                     acoes_executadas.append(alerta)
                 print()
             
@@ -500,7 +594,7 @@ class ChatComMemoria:
         """Limpa todo o histórico de conversação"""
         mensagens_removidas = len(self.historico)
         self.historico = []
-        print("Histórico limpo - memória apagada\n")
+        print(pintar("  ✓ Histórico limpo — memória apagada", _C.OK) + "\n")
         
         if self.modo_debug:
             self._registrar_log(f"\n{'═'*70}\n")
@@ -512,16 +606,23 @@ class ChatComMemoria:
     
     def mostrar_historico(self):
         """Exibe todo o histórico de conversação"""
-        print("\n" + "="*60)
-        print("HISTÓRICO DA CONVERSAÇÃO")
-        print("="*60)
-        
+        print("\n" + cabecalho("HISTÓRICO DA CONVERSAÇÃO"))
+
+        if not self.historico:
+            print(pintar("\n  (histórico vazio)\n", _C.DIM))
+            return
+
         for i, msg in enumerate(self.historico, 1):
-            role = "VOCÊ" if msg["role"] == "user" else "ASSISTENTE"
-            print(f"\n[{i}] {role}:")
-            print(f"{msg['content']}")
-        
-        print("\n" + "="*60 + "\n")
+            usuario = msg["role"] == "user"
+            rotulo = "Você" if usuario else "Assistente"
+            cor = _C.USUARIO if usuario else _C.ASSISTENTE
+            print()
+            print(pintar(f"  ┃ [{i}] {rotulo}", cor))
+            # Barra vertical colorida em cada linha do conteúdo
+            for linha in msg["content"].splitlines() or [""]:
+                print(pintar("  ┃ ", cor) + linha)
+
+        print("\n" + regua() + "\n")
     
     def contar_tokens_aproximado(self) -> int:
         """
@@ -535,49 +636,48 @@ class ChatComMemoria:
         """Exibe informações detalhadas sobre o estado atual da memória"""
         tokens = self.contar_tokens_aproximado()
         
-        print("\n" + "╔" + "═"*68 + "╗")
-        print("║" + " "*22 + "DEBUG DE MEMÓRIA" + " "*30 + "║")
-        print("╚" + "═"*68 + "╝\n")
-        
-        print(f"📊 Status Geral:")
-        print(f"   • Total de mensagens: {len(self.historico)}")
-        print(f"   • Pares (user+assistant): {len(self.historico) // 2}")
-        print(f"   • Tokens aproximados: {tokens}\n")
-        
+        print("\n" + cabecalho("DEBUG DE MEMÓRIA") + "\n")
+
+        print(pintar("📊 Status Geral", _C.TITULO))
+        print(item("Total de mensagens", len(self.historico)))
+        print(item("Pares (user+assistant)", len(self.historico) // 2))
+        print(item("Tokens aproximados", tokens) + "\n")
+
         if self.tamanho_janela:
-            print(f"🪟 Sliding Window:")
-            print(f"   • Limite: {self.tamanho_janela} pares ({self.tamanho_janela * 2} mensagens)")
-            print(f"   • Uso atual: {len(self.historico) // 2} pares ({len(self.historico)} mensagens)")
             uso_percentual = (len(self.historico) / (self.tamanho_janela * 2)) * 100
-            print(f"   • Percentual: {uso_percentual:.1f}%\n")
+            print(pintar("🪟 Sliding Window", _C.TITULO))
+            print(item("Limite", f"{self.tamanho_janela} pares ({self.tamanho_janela * 2} mensagens)"))
+            print(item("Uso atual", f"{len(self.historico) // 2} pares ({len(self.historico)} mensagens)"))
+            print(item("Percentual", f"{uso_percentual:.1f}%") + "\n")
         else:
-            print(f"🪟 Sliding Window: Desabilitado\n")
-        
+            print(pintar("🪟 Sliding Window", _C.TITULO) + pintar("  Desabilitado", _C.DIM) + "\n")
+
         if self.limite_maximo:
             nivel = self._calcular_nivel_alerta(tokens)
             percentual = (tokens / self.limite_maximo) * 100
-            print(f"📈 Monitoramento:")
-            print(f"   • Limite máximo: {self.limite_maximo} tokens")
-            print(f"   • Uso atual: {tokens} tokens ({percentual:.1f}%)")
-            print(f"   • Nível: {nivel}")
-            
-            # Barra de progresso ASCII
+            print(pintar("📈 Monitoramento", _C.TITULO))
+            print(item("Limite máximo", f"{self.limite_maximo} tokens"))
+            print(item("Uso atual", f"{tokens} tokens ({percentual:.1f}%)"))
+            print(item("Nível", nivel))
+
+            # Barra de progresso colorida conforme o nível de uso
             barra_total = 50
             barra_preenchida = int((tokens / self.limite_maximo) * barra_total)
             barra_preenchida = min(barra_preenchida, barra_total)
-            barra = "█" * barra_preenchida + "░" * (barra_total - barra_preenchida)
-            print(f"   • Progresso: [{barra}]\n")
+            barra = (pintar("█" * barra_preenchida, cor_por_nivel(nivel))
+                     + pintar("░" * (barra_total - barra_preenchida), _C.DIM))
+            print(f"   {pintar('•', _C.INFO)} Progresso: {pintar('▕', _C.DIM)}{barra}{pintar('▏', _C.DIM)}\n")
         else:
-            print(f"📈 Monitoramento: Desabilitado\n")
-        
+            print(pintar("📈 Monitoramento", _C.TITULO) + pintar("  Desabilitado", _C.DIM) + "\n")
+
         if self.modo_debug:
-            print(f"🐛 Modo Debug: Ativo")
-            print(f"   • Arquivo de log: {self.arquivo_log}")
-            print(f"   • Interações registradas: {self.contador_interacoes}\n")
+            print(pintar("🐛 Modo Debug", _C.TITULO) + pintar("  Ativo", _C.OK))
+            print(item("Arquivo de log", self.arquivo_log))
+            print(item("Interações registradas", self.contador_interacoes) + "\n")
         else:
-            print(f"🐛 Modo Debug: Desabilitado\n")
-        
-        print("═"*70 + "\n")
+            print(pintar("🐛 Modo Debug", _C.TITULO) + pintar("  Desabilitado", _C.DIM) + "\n")
+
+        print(regua() + "\n")
     
     def grafico_tokens(self):
         """Gera um gráfico ASCII da evolução de tokens no histórico"""
@@ -585,10 +685,8 @@ class ChatComMemoria:
             print("\n⚠️  Nenhum histórico disponível para gerar gráfico\n")
             return
         
-        print("\n" + "╔" + "═"*68 + "╗")
-        print("║" + " "*20 + "GRÁFICO DE TOKENS" + " "*31 + "║")
-        print("╚" + "═"*68 + "╝\n")
-        
+        print("\n" + cabecalho("GRÁFICO DE TOKENS") + "\n")
+
         # Calcula tokens acumulados a cada mensagem
         tokens_acumulados = []
         total_chars = 0
@@ -605,40 +703,46 @@ class ChatComMemoria:
         altura_grafico = 15
         largura_grafico = len(tokens_acumulados)
         
-        print(f"Evolução de tokens ao longo de {len(self.historico)} mensagens\n")
-        print(f"Max: {max_tokens} tokens")
-        
+        print(pintar(f"Evolução de tokens ao longo de {len(self.historico)} mensagens", _C.DIM) + "\n")
+        print(item("Máximo", f"{max_tokens} tokens"))
+
+        # Cor das barras: pelo nível de uso (se houver limite) ou cor neutra
+        cor_graf = cor_por_nivel(self._calcular_nivel_alerta(max_tokens)) if self.limite_maximo else _C.VALOR
+
         # Desenha o gráfico de cima para baixo
         for nivel in range(altura_grafico, -1, -1):
             linha = ""
             threshold = (nivel / altura_grafico) * max_tokens
-            
+
             for tokens in tokens_acumulados:
                 if tokens >= threshold:
                     linha += "█"
                 else:
                     linha += " "
-            
+
+            barra = pintar(linha, cor_graf)
+            eixo = pintar("│", _C.MOLDURA)
             # Adiciona escala no lado esquerdo
             if nivel == altura_grafico:
-                print(f"{max_tokens:>4} |{linha}")
+                print(pintar(f"{max_tokens:>4} ", _C.DIM) + eixo + barra)
             elif nivel == altura_grafico // 2:
-                print(f"{max_tokens//2:>4} |{linha}")
+                print(pintar(f"{max_tokens//2:>4} ", _C.DIM) + eixo + barra)
             elif nivel == 0:
-                print(f"   0 |{linha}")
+                print(pintar("   0 ", _C.DIM) + eixo + barra)
             else:
-                print(f"     |{linha}")
-        
+                print(pintar("     ", _C.DIM) + eixo + barra)
+
         # Linha de base
-        print(f"     └" + "─" * largura_grafico)
-        print(f"      Mensagens: 1" + " " * (largura_grafico - 13) + f"{len(self.historico)}")
+        print(pintar("     └" + "─" * largura_grafico, _C.MOLDURA))
+        print(pintar(f"      Mensagens: 1" + " " * (largura_grafico - 13) + f"{len(self.historico)}", _C.DIM))
         
         if self.limite_maximo:
             percentual = (max_tokens / self.limite_maximo) * 100
             nivel = self._calcular_nivel_alerta(max_tokens)
-            print(f"\n{nivel} Uso máximo: {max_tokens}/{self.limite_maximo} tokens ({percentual:.1f}%)")
-        
-        print("\n" + "═"*70 + "\n")
+            print(pintar(f"\n{nivel} Uso máximo: {max_tokens}/{self.limite_maximo} tokens ({percentual:.1f}%)",
+                         cor_por_nivel(nivel)))
+
+        print("\n" + regua() + "\n")
     
     def exportar_conversa(self, arquivo: str = None):
         """
@@ -660,24 +764,29 @@ class ChatComMemoria:
                 role = "VOCÊ" if msg["role"] == "user" else "ASSISTENTE"
                 f.write(f"{role}:\n{msg['content']}\n\n")
         
-        print(f"Conversa exportada para: {arquivo}\n")
+        print(pintar(f"  ✓ Conversa exportada para: {arquivo}", _C.OK) + "\n")
 
 
 def chat_interativo():
     """Função principal para chat interativo no terminal"""
     
-    print("="*60)
-    print("CHAT COM OPENAI - COM MEMÓRIA")
-    print("="*60)
-    print("\nComandos especiais:")
-    print("  /limpar    - Limpa a memória do chat")
-    print("  /historico - Mostra todo o histórico")
-    print("  /tokens    - Mostra quantidade aproximada de tokens")
-    print("  /debug     - Exibe informações detalhadas de memória")
-    print("  /grafico   - Mostra gráfico de evolução de tokens")
-    print("  /exportar  - Exporta a conversa para arquivo")
-    print("  /sair      - Encerra o chat")
-    print("="*60 + "\n")
+    print()
+    print(cabecalho("CHAT OPENAI · MEMÓRIA DE CONVERSAÇÃO", cor=_C.USUARIO))
+    print()
+    print(pintar("  Comandos especiais", _C.TITULO))
+    print(regua())
+    comandos = [
+        ("/limpar", "Limpa a memória do chat"),
+        ("/historico", "Mostra todo o histórico"),
+        ("/tokens", "Mostra quantidade aproximada de tokens"),
+        ("/debug", "Exibe informações detalhadas de memória"),
+        ("/grafico", "Mostra gráfico de evolução de tokens"),
+        ("/exportar", "Exporta a conversa para arquivo"),
+        ("/sair", "Encerra o chat"),
+    ]
+    for cmd, desc in comandos:
+        print(f"  {pintar(cmd.ljust(11), _C.SISTEMA)} {pintar(desc, _C.DIM)}")
+    print(regua() + "\n")
     
     try:
         # Inicializa o chat
@@ -688,14 +797,14 @@ def chat_interativo():
         
         while True:
             # Recebe mensagem do usuário
-            mensagem = input("Você: ").strip()
+            mensagem = input(pintar("  Você ▸ ", _C.USUARIO)).strip()
             
             if not mensagem:
                 continue
             
             # Processa comandos especiais
             if mensagem.lower() == "/sair":
-                print("\nEncerrando chat. Até logo")
+                print(pintar("\n  Encerrando chat. Até logo! 👋", _C.SISTEMA) + "\n")
                 break
             
             elif mensagem.lower() == "/limpar":
@@ -708,7 +817,7 @@ def chat_interativo():
             
             elif mensagem.lower() == "/tokens":
                 tokens = chat.contar_tokens_aproximado()
-                print(f"\nTokens aproximados no histórico: {tokens}\n")
+                print("\n" + item("Tokens aproximados no histórico", tokens) + "\n")
                 continue
             
             elif mensagem.lower() == "/debug":
@@ -725,35 +834,34 @@ def chat_interativo():
             
             # Envia mensagem e recebe resposta
             try:
-                print("\nAssistente: ", end="", flush=True)
+                print(pintar("\n  Assistente ▸ ", _C.ASSISTENTE), end="", flush=True)
                 resposta = chat.enviar_mensagem(mensagem)
                 # No modo streaming a resposta já foi impressa token a token
                 if chat.stream:
                     print("\n")
                 else:
                     print(resposta + "\n")
-                
+                print(regua())
+
             except Exception as e:
-                print(f"\nErro: {e}\n")
+                print(pintar(f"\n  ✖ Erro: {e}", _C.ERRO) + "\n")
                 break
     
     except ValueError as e:
-        print(f"\nErro de configuração: {e}")
-        print("Configure a variável de ambiente OPENAI_API_KEY com sua chave da API.\n")
-    
+        print(pintar(f"\n  ✖ Erro de configuração: {e}", _C.ERRO))
+        print(pintar("  Configure a variável OPENAI_API_KEY no arquivo .env.\n", _C.DIM))
+
     except KeyboardInterrupt:
-        print("\n\nChat interrompido pelo usuário. Até logo")
-    
+        print(pintar("\n\n  Chat interrompido pelo usuário. Até logo! 👋", _C.SISTEMA))
+
     except Exception as e:
-        print(f"\nErro inesperado: {e}")
+        print(pintar(f"\n  ✖ Erro inesperado: {e}", _C.ERRO))
 
 
 def exemplo_programatico():
     """Exemplo de uso programático (não interativo)"""
     
-    print("\n" + "="*60)
-    print("EXEMPLO DE USO PROGRAMÁTICO")
-    print("="*60 + "\n")
+    print("\n" + cabecalho("EXEMPLO DE USO PROGRAMÁTICO", cor=_C.SISTEMA) + "\n")
     
     # Inicializa o chat
     chat = ChatComMemoria()
@@ -771,19 +879,19 @@ def exemplo_programatico():
     ]
     
     for pergunta in perguntas:
-        print(f"VOCÊ: {pergunta}")
-        print("ASSISTENTE: ", end="", flush=True)
+        print(pintar("  Você ▸ ", _C.USUARIO) + pergunta)
+        print(pintar("  Assistente ▸ ", _C.ASSISTENTE), end="", flush=True)
         resposta = chat.enviar_mensagem(pergunta)
         # No modo streaming a resposta já foi impressa token a token
         if chat.stream:
             print("\n")
         else:
             print(f"{resposta}\n")
-        print("-"*60 + "\n")
-    
+        print(regua() + "\n")
+
     # Mostra estatísticas
-    print(f"Total de mensagens no histórico: {len(chat.historico)}")
-    print(f"Tokens aproximados: {chat.contar_tokens_aproximado()}")
+    print(item("Total de mensagens no histórico", len(chat.historico)))
+    print(item("Tokens aproximados", chat.contar_tokens_aproximado()))
     
     # Exporta conversa
     chat.exportar_conversa("exemplo_conversa.txt")
