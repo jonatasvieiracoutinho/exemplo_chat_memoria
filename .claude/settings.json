@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m py_compile chat_openai_memoria.py exemplos_avancados.py)",
+      "Bash(pip install *)",
+      "Bash(python -m venv venv)",
+      "Bash(.\\\\venv\\\\Scripts\\\\activate)",
+      "Bash(python -c \"from chat_openai_memoria import ChatComMemoria, _BackendOpenAI; print\\('✓ Importação bem-sucedida'\\)\")"
+    ]
+  }
+}
