@@ -128,7 +128,7 @@ class ChatComMemoria:
         else:
             self.client = OpenAI(api_key=self.api_key)
         self.historico = []
-        self.system_prompt = "Você é um assistente útil e amigável."
+        self.system_prompt = "Você é um assistente confiável. Se não tiver certeza das fontes de seus dados, diga que não sabe. É melhor não responder do que responder errado."
         
         # Controle de logging
         self.arquivo_log = None
