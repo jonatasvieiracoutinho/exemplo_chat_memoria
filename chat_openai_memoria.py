@@ -390,7 +390,19 @@ class ChatComMemoria:
             return True
         
         return False
-    
+
+    def _usa_parametros_reasoning(self) -> bool:
+        """
+        Indica se o modelo configurado pertence à família de reasoning da OpenAI
+        (gpt-5*, o1*, o3*, o4*).
+
+        Esses modelos mudaram o contrato da API: exigem 'max_completion_tokens'
+        no lugar de 'max_tokens' e só aceitam o valor padrão de temperature (1),
+        rejeitando qualquer outro com erro 400.
+        """
+        modelo = self.modelo.lower()
+        return modelo.startswith(("gpt-5", "o1", "o3", "o4"))
+
     def enviar_mensagem(self, mensagem: str) -> str:
         """
         Envia mensagem para a API mantendo o contexto completo.
@@ -414,13 +426,21 @@ class ChatComMemoria:
         ] + self.historico
         
         try:
+            # Monta os parâmetros conforme o contrato da API do modelo.
+            # Modelos de reasoning (gpt-5*, o-series) usam 'max_completion_tokens'
+            # e não aceitam 'temperature' customizada (somente o padrão 1).
+            parametros = {
+                "model": self.modelo,
+                "messages": mensagens,
+            }
+            if self._usa_parametros_reasoning():
+                parametros["max_completion_tokens"] = self.max_tokens
+            else:
+                parametros["temperature"] = self.temperature
+                parametros["max_tokens"] = self.max_tokens
+
             # Chama a API
-            resposta = self.client.chat.completions.create(
-                model=self.modelo,
-                messages=mensagens,
-                temperature=self.temperature,
-                max_tokens=self.max_tokens
-            )
+            resposta = self.client.chat.completions.create(**parametros)
             
             # Extrai resposta
             resposta_texto = resposta.choices[0].message.content
