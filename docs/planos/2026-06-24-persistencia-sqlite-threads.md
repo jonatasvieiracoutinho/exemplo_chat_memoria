@@ -1069,11 +1069,11 @@ Adicionar nota sobre o padrão de extensão de `ChatComMemoria`: novos comportam
 ### Critérios de Sucesso
 
 #### Verificação Automatizada:
-- [ ] `grep -q "PERSISTENCIA_SQLITE" env.example` retorna 0 (variável documentada).
-- [ ] `grep -q "chat_memoria.db" .gitignore` retorna 0 (banco gitignored).
-- [ ] `grep -qi "threads\|retomar\|excluir\|sqlite" docs/USO_BASICO.md` retorna 0 (doc atualizada).
-- [ ] `grep -qi "sqlite\|persistência\|threads" README.md` retorna 0 (README atualizado).
-- [ ] `pytest tests/ -v` continua passando com 0 falhas após alterações de documentação (nada quebrou).
+- [x] `grep -q "PERSISTENCIA_SQLITE" env.example` retorna 0 (variável documentada).
+- [x] `grep -q "chat_memoria.db" .gitignore` retorna 0 (banco gitignored).
+- [x] `grep -qi "threads\|retomar\|excluir\|sqlite" docs/USO_BASICO.md` retorna 0 (doc atualizada).
+- [x] `grep -qi "sqlite\|persistência\|threads" README.md` retorna 0 (README atualizado).
+- [x] `pytest tests/ -v` continua passando com 0 falhas após alterações de documentação (nada quebrou).
 
 #### ⛔ Pausa Obrigatória
 - [ ] Aguardar confirmação explícita do usuário ou orquestrador antes de encerrar. **Não avançar sem receber um comando explícito.**

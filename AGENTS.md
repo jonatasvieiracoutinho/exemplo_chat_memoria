@@ -201,6 +201,24 @@ class ChatProfessor(ChatComMemoria):
         self.definir_system_prompt("Você é um professor...")
 ```
 
+### Persistência SQLite
+
+```python
+# Ativar persistência injetando o gerenciador via __init__
+from persistencia import GerenciadorPersistencia
+
+gerenciador = GerenciadorPersistencia()  # usa chat_memoria.db por padrão
+chat = ChatComMemoria(gerenciador=gerenciador)
+# Threads são criadas e salvas automaticamente
+
+# Retomar thread existente
+chat = ChatComMemoria(gerenciador=gerenciador, thread_id=42)
+```
+
+### Padrão de Extensão de `ChatComMemoria`
+
+Novos comportamentos opcionais devem ser **injetados via parâmetros no `__init__`**, não implementados via herança ou variáveis globais. O parâmetro `gerenciador` é o exemplo canônico: quando `None`, a classe funciona exatamente como antes; quando presente, o comportamento extra é ativado de forma transparente. Esse padrão evita acoplamento e mantém o comportamento padrão inalterado para código existente.
+
 ## 📊 Métricas de Qualidade
 
 - **Validação completa** de configurações

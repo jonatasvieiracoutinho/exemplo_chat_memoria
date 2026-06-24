@@ -87,6 +87,7 @@ python exemplos_avancados.py
 - ✅ Comandos especiais (`/limpar`, `/historico`, `/tokens`, `/exportar`)
 - ✅ Personalização via system prompt
 - ✅ Exportação de conversas
+- ✅ Persistência SQLite de conversas (threads) — ativada por `PERSISTENCIA_SQLITE=true` no `.env`
 
 ### Uso Programático
 
@@ -182,10 +183,10 @@ chat.enviar_mensagem("Explique closures")
 
 ## ⚠️ Limitações
 
-- **Sem persistência:** Memória perdida ao fechar o programa
+- **Persistência opcional:** Por padrão, a memória é perdida ao fechar o programa; ative `PERSISTENCIA_SQLITE=true` para salvar conversas localmente
 - **Crescimento linear:** Custos aumentam com tamanho do histórico
 - **Gerenciamento manual:** Usuário deve controlar limpeza de contexto
-- **In-memory apenas:** Não há banco de dados ou storage
+- **Single-user:** O banco SQLite local não suporta múltiplos usuários simultâneos
 
 ---
 
