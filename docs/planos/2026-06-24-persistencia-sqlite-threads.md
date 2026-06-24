@@ -1025,9 +1025,9 @@ def test_retomar_id_inexistente_nao_altera_historico(chat_com_db):
 ### Critérios de Sucesso
 
 #### Verificação Automatizada:
-- [ ] `pytest tests/ -v` passa com 0 falhas (todas as três suítes).
-- [ ] `python -c "import os; os.environ.setdefault('PERSISTENCIA_SQLITE','false'); from chat_openai_memoria import chat_interativo"` importa sem erro.
-- [ ] `python -c "from chat_openai_memoria import _selecionar_thread, _exibir_lista_threads"` importa sem erro.
+- [x] `pytest tests/ -v` passa com 0 falhas (todas as três suítes).
+- [x] `python -c "import os; os.environ.setdefault('PERSISTENCIA_SQLITE','false'); from chat_openai_memoria import chat_interativo"` importa sem erro.
+- [x] `python -c "from chat_openai_memoria import _selecionar_thread, _exibir_lista_threads"` importa sem erro.
 
 #### ⛔ Pausa Obrigatória
 - [ ] Aguardar confirmação explícita do usuário ou orquestrador antes de iniciar a próxima fase. **Não avançar sem receber um comando explícito.**
