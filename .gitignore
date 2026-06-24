@@ -25,3 +25,6 @@ __pycache__/
 *.swp
 *.swo
 
+# Banco de dados SQLite local (gerado em tempo de execução)
+chat_memoria.db
+

@@ -381,10 +381,10 @@ def test_foreign_key_cascade_ativo(db):
 ### Critérios de Sucesso
 
 #### Verificação Automatizada:
-- [ ] `pip install -r requirements.txt` instala `pytest` sem erros.
-- [ ] `pytest tests/test_persistencia.py -v` passa com 0 falhas.
-- [ ] `python -c "from persistencia import GerenciadorPersistencia"` executa sem erro.
-- [ ] `chat_memoria.db` está listado no `.gitignore` (`grep chat_memoria.db .gitignore` retorna match).
+- [x] `pip install -r requirements.txt` instala `pytest` sem erros.
+- [x] `pytest tests/test_persistencia.py -v` passa com 0 falhas.
+- [x] `python -c "from persistencia import GerenciadorPersistencia"` executa sem erro.
+- [x] `chat_memoria.db` está listado no `.gitignore` (`grep chat_memoria.db .gitignore` retorna match).
 
 #### ⛔ Pausa Obrigatória
 - [ ] Aguardar confirmação explícita do usuário ou orquestrador antes de iniciar a próxima fase. **Não avançar sem receber um comando explícito.**
