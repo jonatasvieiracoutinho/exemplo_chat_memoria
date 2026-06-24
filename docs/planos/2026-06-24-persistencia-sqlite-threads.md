@@ -642,8 +642,8 @@ def test_titulo_nao_sobrescrito_ao_retomar_thread(db):
 ### Critérios de Sucesso
 
 #### Verificação Automatizada:
-- [ ] `pytest tests/test_persistencia.py tests/test_integracao_chat.py -v` passa com 0 falhas.
-- [ ] `python -c "from chat_openai_memoria import ChatComMemoria"` executa sem importar `persistencia` (módulo só é importado em runtime quando persistência está ativa).
+- [x] `pytest tests/test_persistencia.py tests/test_integracao_chat.py -v` passa com 0 falhas.
+- [x] `python -c "from chat_openai_memoria import ChatComMemoria"` executa sem importar `persistencia` (módulo só é importado em runtime quando persistência está ativa).
 
 #### ⛔ Pausa Obrigatória
 - [ ] Aguardar confirmação explícita do usuário ou orquestrador antes de iniciar a próxima fase. **Não avançar sem receber um comando explícito.**

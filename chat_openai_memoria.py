@@ -104,7 +104,7 @@ class ChatComMemoria:
     """Classe para gerenciar chat com memória usando OpenAI API
        Todas as configurações são carregadas do arquivo .env"""
 
-    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None, stream: bool = None):
+    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None, stream: bool = None, gerenciador=None, thread_id: int = None):
         """
         Inicializa o chat com memória.
 
@@ -226,7 +226,17 @@ class ChatComMemoria:
             self.client = OpenAI(api_key=self.api_key)
         self.historico = []
         self.system_prompt = "Você é um assistente confiável. Se não tiver certeza das fontes de seus dados, diga que não sabe. É melhor não responder do que responder errado."
-        
+
+        # Persistência SQLite
+        self.gerenciador = gerenciador
+        self.thread_id = thread_id
+        self._thread_titulo_definido = thread_id is not None
+
+        # Carregar histórico da thread selecionada
+        if self.gerenciador and self.thread_id:
+            self.historico = self.gerenciador.carregar_historico(self.thread_id)
+            self._aplicar_janela_deslizante()
+
         # Controle de logging
         self.arquivo_log = None
         self.contador_interacoes = 0
@@ -256,6 +266,9 @@ class ChatComMemoria:
             print(item("Modo debug", f"logs em {self.arquivo_log}"))
         if self.stream:
             print(item("Streaming", "resposta exibida token a token"))
+        if self.gerenciador:
+            modo_db = f"thread #{self.thread_id}" if self.thread_id else "nova thread"
+            print(item("Persistência", f"SQLite ativo — {modo_db}"))
         print(regua())
         print()
     
@@ -410,11 +423,18 @@ class ChatComMemoria:
             role: 'user' ou 'assistant'
             content: Conteúdo da mensagem
         """
-        self.historico.append({
-            "role": role,
-            "content": content
-        })
-    
+        self.historico.append({"role": role, "content": content})
+
+        if self.gerenciador:
+            if role == "user" and not self._thread_titulo_definido:
+                titulo = content[:60].strip() or "Conversa sem título"
+                self.thread_id = self.gerenciador.criar_thread(titulo)
+                self._thread_titulo_definido = True
+
+            if self.thread_id:
+                ordem = len(self.historico)
+                self.gerenciador.salvar_mensagem(self.thread_id, role, content, ordem)
+
     def _calcular_nivel_alerta(self, tokens: int) -> str:
         """
         Calcula o nível de alerta baseado na quantidade de tokens.
