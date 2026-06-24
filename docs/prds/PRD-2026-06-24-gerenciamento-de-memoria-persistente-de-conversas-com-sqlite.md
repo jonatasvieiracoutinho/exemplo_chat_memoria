@@ -67,7 +67,7 @@ os.getenv("PERSISTENCIA_SQLITE", "false").lower() == "true"
 
 ### RF-02 — Banco de dados SQLite local
 
-Quando a persistência estiver ativada, o sistema deve criar (ou abrir) um arquivo SQLite no diretório do projeto, com nome padrão `chat_memoria.db`. O banco deve conter ao menos duas tabelas:
+Quando a persistência estiver ativada, o sistema deve criar (ou abrir) um arquivo SQLite no diretório do projeto, com nome padrão `chat_memoria.db` e deverá ficar em uma pasta não versionada (.gitignore). O banco deve conter ao menos duas tabelas:
 
 - **threads**: armazena metadados de cada conversa (id inteiro autoincrement, título, timestamp de criação, timestamp da última atualização).
 - **mensagens**: armazena cada mensagem (id, thread_id como FK, role, content, posição/ordem de inserção).
