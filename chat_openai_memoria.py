@@ -104,7 +104,7 @@ class ChatComMemoria:
     """Classe para gerenciar chat com memória usando OpenAI API
        Todas as configurações são carregadas do arquivo .env"""
 
-    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None, stream: bool = None):
+    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None, stream: bool = None, gerenciador=None, thread_id: int = None):
         """
         Inicializa o chat com memória.
 
@@ -226,7 +226,17 @@ class ChatComMemoria:
             self.client = OpenAI(api_key=self.api_key)
         self.historico = []
         self.system_prompt = "Você é um assistente confiável. Se não tiver certeza das fontes de seus dados, diga que não sabe. É melhor não responder do que responder errado."
-        
+
+        # Persistência SQLite
+        self.gerenciador = gerenciador
+        self.thread_id = thread_id
+        self._thread_titulo_definido = thread_id is not None
+
+        # Carregar histórico da thread selecionada
+        if self.gerenciador and self.thread_id:
+            self.historico = self.gerenciador.carregar_historico(self.thread_id)
+            self._aplicar_janela_deslizante()
+
         # Controle de logging
         self.arquivo_log = None
         self.contador_interacoes = 0
@@ -256,6 +266,9 @@ class ChatComMemoria:
             print(item("Modo debug", f"logs em {self.arquivo_log}"))
         if self.stream:
             print(item("Streaming", "resposta exibida token a token"))
+        if self.gerenciador:
+            modo_db = f"thread #{self.thread_id}" if self.thread_id else "nova thread"
+            print(item("Persistência", f"SQLite ativo — {modo_db}"))
         print(regua())
         print()
     
@@ -410,11 +423,18 @@ class ChatComMemoria:
             role: 'user' ou 'assistant'
             content: Conteúdo da mensagem
         """
-        self.historico.append({
-            "role": role,
-            "content": content
-        })
-    
+        self.historico.append({"role": role, "content": content})
+
+        if self.gerenciador:
+            if role == "user" and not self._thread_titulo_definido:
+                titulo = content[:60].strip() or "Conversa sem título"
+                self.thread_id = self.gerenciador.criar_thread(titulo)
+                self._thread_titulo_definido = True
+
+            if self.thread_id:
+                ordem = len(self.historico)
+                self.gerenciador.salvar_mensagem(self.thread_id, role, content, ordem)
+
     def _calcular_nivel_alerta(self, tokens: int) -> str:
         """
         Calcula o nível de alerta baseado na quantidade de tokens.
@@ -767,30 +787,83 @@ class ChatComMemoria:
         print(pintar(f"  ✓ Conversa exportada para: {arquivo}", _C.OK) + "\n")
 
 
+def _exibir_lista_threads(gerenciador):
+    threads = gerenciador.listar_threads()
+    if not threads:
+        print(pintar("  Nenhuma conversa armazenada.", _C.DIM))
+        return
+    print(pintar("  Conversas armazenadas", _C.TITULO))
+    print(regua())
+    for t in threads:
+        data = t["atualizado_em"][:16].replace("T", " ")
+        titulo = t["titulo"][:42]
+        msgs = t["total_mensagens"]
+        linha = (
+            f"  {pintar(str(t['id']).rjust(3), _C.SISTEMA)}"
+            f"  {titulo:<44}"
+            f"  {pintar(data, _C.DIM)}"
+            f"  {pintar(f'({msgs} msg)', _C.DIM)}"
+        )
+        print(linha)
+    print(regua())
+
+
+def _selecionar_thread(gerenciador):
+    threads = gerenciador.listar_threads()
+    print()
+    print(cabecalho("SELECIONAR CONVERSA", cor=_C.SISTEMA))
+    print()
+    _exibir_lista_threads(gerenciador)
+    print(f"  {pintar('  0', _C.SISTEMA)}  Nova conversa")
+    print()
+    while True:
+        escolha = input(pintar("  Selecione o ID (ou 0 para nova): ", _C.USUARIO)).strip()
+        if escolha == "0":
+            return None
+        if escolha.isdigit() and gerenciador.thread_existe(int(escolha)):
+            return int(escolha)
+        print(pintar(f"  Thread '{escolha}' não encontrada. Tente novamente.", _C.ERRO))
+
+
 def chat_interativo():
     """Função principal para chat interativo no terminal"""
-    
+
+    persistencia_ativa = os.getenv("PERSISTENCIA_SQLITE", "false").lower() == "true"
+    gerenciador = None
+    thread_id_inicial = None
+
+    if persistencia_ativa:
+        from persistencia import GerenciadorPersistencia
+        gerenciador = GerenciadorPersistencia()
+        thread_id_inicial = _selecionar_thread(gerenciador)
+
     print()
     print(cabecalho("CHAT OPENAI · MEMÓRIA DE CONVERSAÇÃO", cor=_C.USUARIO))
     print()
     print(pintar("  Comandos especiais", _C.TITULO))
     print(regua())
-    comandos = [
-        ("/limpar", "Limpa a memória do chat"),
+    comandos_base = [
+        ("/limpar",    "Limpa a memória do chat"),
         ("/historico", "Mostra todo o histórico"),
-        ("/tokens", "Mostra quantidade aproximada de tokens"),
-        ("/debug", "Exibe informações detalhadas de memória"),
-        ("/grafico", "Mostra gráfico de evolução de tokens"),
-        ("/exportar", "Exporta a conversa para arquivo"),
-        ("/sair", "Encerra o chat"),
+        ("/tokens",    "Mostra quantidade aproximada de tokens"),
+        ("/debug",     "Exibe informações detalhadas de memória"),
+        ("/grafico",   "Mostra gráfico de evolução de tokens"),
+        ("/exportar",  "Exporta a conversa para arquivo"),
+        ("/sair",      "Encerra o chat"),
     ]
-    for cmd, desc in comandos:
+    if persistencia_ativa:
+        comandos_base += [
+            ("/threads",       "Lista conversas armazenadas"),
+            ("/retomar <id>",  "Retoma uma conversa salva"),
+            ("/excluir <id>",  "Exclui uma conversa permanentemente"),
+        ]
+    for cmd, desc in comandos_base:
         print(f"  {pintar(cmd.ljust(11), _C.SISTEMA)} {pintar(desc, _C.DIM)}")
     print(regua() + "\n")
     
     try:
         # Inicializa o chat
-        chat = ChatComMemoria()
+        chat = ChatComMemoria(gerenciador=gerenciador, thread_id=thread_id_inicial)
         
         # Opcional: definir personalidade customizada
         # chat.definir_personalidade("Você é um especialista em Python que responde de forma concisa.")
@@ -809,6 +882,11 @@ def chat_interativo():
             
             elif mensagem.lower() == "/limpar":
                 chat.limpar_historico()
+                if gerenciador:
+                    print(pintar(
+                        "  ℹ  Histórico em memória limpo. Mensagens no banco SQLite foram preservadas.",
+                        _C.SISTEMA
+                    ) + "\n")
                 continue
             
             elif mensagem.lower() == "/historico":
@@ -831,7 +909,65 @@ def chat_interativo():
             elif mensagem.lower() == "/exportar":
                 chat.exportar_conversa()
                 continue
-            
+
+            elif mensagem.lower() == "/threads":
+                if gerenciador:
+                    _exibir_lista_threads(gerenciador)
+                else:
+                    print(pintar(
+                        "  Persistência desabilitada. Defina PERSISTENCIA_SQLITE=true no .env para usar threads.",
+                        _C.DIM
+                    ) + "\n")
+                continue
+
+            elif mensagem.lower().startswith("/retomar"):
+                partes = mensagem.split()
+                if not gerenciador:
+                    print(pintar("  Persistência desabilitada.", _C.DIM) + "\n")
+                elif len(partes) == 2 and partes[1].isdigit():
+                    novo_id = int(partes[1])
+                    if gerenciador.thread_existe(novo_id):
+                        historico = gerenciador.carregar_historico(novo_id)
+                        chat.historico = historico
+                        chat._aplicar_janela_deslizante()
+                        chat.thread_id = novo_id
+                        chat._thread_titulo_definido = True
+                        print(pintar(f"  ✔ Thread #{novo_id} carregada ({len(historico)} mensagens).", _C.SISTEMA) + "\n")
+                    else:
+                        print(pintar(f"  Thread #{novo_id} não encontrada.", _C.ERRO) + "\n")
+                else:
+                    print(pintar("  Uso: /retomar <id>", _C.DIM) + "\n")
+                continue
+
+            elif mensagem.lower().startswith("/excluir"):
+                partes = mensagem.split()
+                if not gerenciador:
+                    print(pintar("  Persistência desabilitada.", _C.DIM) + "\n")
+                elif len(partes) == 2 and partes[1].isdigit():
+                    excluir_id = int(partes[1])
+                    if gerenciador.thread_existe(excluir_id):
+                        confirmacao = input(
+                            pintar(f"  Excluir thread #{excluir_id}? Esta ação é irreversível. (s/n): ", _C.ERRO)
+                        ).strip().lower()
+                        if confirmacao == "s":
+                            gerenciador.excluir_thread(excluir_id)
+                            if excluir_id == chat.thread_id:
+                                chat.historico = []
+                                chat.thread_id = None
+                                chat._thread_titulo_definido = False
+                                print(pintar(
+                                    "  Thread ativa excluída. Nova conversa iniciada.", _C.SISTEMA
+                                ) + "\n")
+                            else:
+                                print(pintar(f"  Thread #{excluir_id} excluída.", _C.SISTEMA) + "\n")
+                        else:
+                            print(pintar("  Exclusão cancelada.", _C.DIM) + "\n")
+                    else:
+                        print(pintar(f"  Thread #{excluir_id} não encontrada.", _C.ERRO) + "\n")
+                else:
+                    print(pintar("  Uso: /excluir <id>", _C.DIM) + "\n")
+                continue
+
             # Envia mensagem e recebe resposta
             try:
                 print(pintar("\n  Assistente ▸ ", _C.ASSISTENTE), end="", flush=True)
@@ -856,6 +992,9 @@ def chat_interativo():
 
     except Exception as e:
         print(pintar(f"\n  ✖ Erro inesperado: {e}", _C.ERRO))
+    finally:
+        if gerenciador:
+            gerenciador.fechar()
 
 
 def exemplo_programatico():

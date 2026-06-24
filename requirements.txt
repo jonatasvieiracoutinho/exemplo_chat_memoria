@@ -9,3 +9,6 @@ python-dotenv>=1.0.0
 # Cores ANSI no terminal (compatível com Windows)
 colorama>=0.4.6
 
+# Testes automatizados
+pytest>=8.0.0
+

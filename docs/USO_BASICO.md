@@ -5,6 +5,7 @@ Aprenda a usar o chat com memória nos três modos disponíveis.
 ## Índice
 
 - [Modo Interativo](#modo-interativo)
+- [Persistência de Conversas (Threads)](#persistência-de-conversas-threads)
 - [Modo Programático](#modo-programático)
 - [Uso como Biblioteca](#uso-como-biblioteca)
 - [Referência dos Métodos](#referência-dos-métodos)
@@ -185,6 +186,105 @@ Assistente: Não, você ainda não me disse seu nome. Como você se chama?
 Você: /sair
 Encerrando chat...
 ```
+
+---
+
+## Persistência de Conversas (Threads)
+
+O chat suporta persistência local de conversas usando SQLite. Quando ativada, cada conversa é salva automaticamente e pode ser retomada em sessões futuras.
+
+### Ativar a Persistência
+
+No arquivo `.env`, defina:
+
+```env
+PERSISTENCIA_SQLITE=true
+```
+
+O banco de dados `chat_memoria.db` será criado automaticamente na raiz do projeto. Ele **não é versionado** pelo git.
+
+### Tela de Seleção de Thread
+
+Ao iniciar o chat com persistência ativa, o sistema exibe a lista de conversas salvas e solicita uma escolha antes de entrar no loop:
+
+```
+  SELECIONAR CONVERSA
+
+  Conversas armazenadas
+  ──────────────────────────────────────────────────────────────
+    1  Dúvidas sobre Python decorators          2026-06-24 10:30  (4 msg)
+    2  Revisão de código do projeto X           2026-06-24 11:15  (12 msg)
+  ──────────────────────────────────────────────────────────────
+    0  Nova conversa
+
+  Selecione o ID (ou 0 para nova): 
+```
+
+- Digite `0` para iniciar uma nova conversa
+- Digite o ID de uma conversa existente para retomá-la
+
+### Comandos de Thread
+
+Dentro do chat interativo, três comandos adicionais ficam disponíveis quando a persistência está ativa:
+
+#### `/threads` — Listar Conversas
+
+Exibe a lista de todas as conversas salvas no banco.
+
+```
+Você: /threads
+
+  Conversas armazenadas
+  ──────────────────────────────────────────────────────────────
+    1  Dúvidas sobre Python decorators          2026-06-24 10:30  (4 msg)
+    2  Revisão de código do projeto X           2026-06-24 11:15  (12 msg)
+  ──────────────────────────────────────────────────────────────
+```
+
+#### `/retomar <id>` — Retomar uma Conversa
+
+Carrega o histórico de uma conversa salva e a torna a conversa ativa.
+
+```
+Você: /retomar 1
+  ✔ Thread #1 carregada (4 mensagens).
+```
+
+O histórico carregado respeita a janela deslizante configurada (`JANELA_MAX`). As mensagens anteriores continuam intactas no banco.
+
+#### `/excluir <id>` — Excluir uma Conversa
+
+Remove permanentemente uma conversa e todas as suas mensagens do banco. A exclusão é irreversível.
+
+```
+Você: /excluir 2
+  Excluir thread #2? Esta ação é irreversível. (s/n): s
+  Thread #2 excluída.
+```
+
+Se a thread excluída for a conversa ativa, o histórico em memória é limpo e uma nova conversa é iniciada automaticamente.
+
+### Comportamento do `/limpar` com Persistência Ativa
+
+O comando `/limpar` apaga apenas o histórico **em memória**. As mensagens já salvas no banco SQLite são preservadas:
+
+```
+Você: /limpar
+  ℹ  Histórico em memória limpo. Mensagens no banco SQLite foram preservadas.
+```
+
+Para remover permanentemente uma conversa, use `/excluir <id>`.
+
+### Títulos das Conversas
+
+O título de uma nova thread é gerado automaticamente a partir dos primeiros 60 caracteres da primeira mensagem do usuário. Se a mensagem estiver em branco, o título será `"Conversa sem título"`. O título não é alterado ao retomar uma thread existente.
+
+### Banco de Dados
+
+- **Localização:** `chat_memoria.db` na raiz do projeto
+- **Formato:** SQLite 3 (arquivo único, sem servidor)
+- **Backup:** Copie o arquivo `chat_memoria.db` para fazer backup de todas as conversas
+- **Segurança:** O arquivo não é versionado pelo git (`.gitignore`)
 
 ---
 
