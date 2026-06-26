@@ -11,6 +11,12 @@ from typing import List, Dict
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Carrega o .env já na importação do módulo, garantindo que qualquer
+# leitura de os.getenv() (inclusive antes de instanciar ChatComMemoria,
+# como a checagem de PERSISTENCIA_SQLITE em chat_interativo) enxergue as
+# variáveis. load_dotenv() é idempotente e não sobrescreve o ambiente.
+load_dotenv()
+
 
 # ============================================================
 #  Camada visual (UI) — cores e caixas para o terminal
