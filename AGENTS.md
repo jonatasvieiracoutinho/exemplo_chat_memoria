@@ -215,6 +215,35 @@ chat = ChatComMemoria(gerenciador=gerenciador)
 chat = ChatComMemoria(gerenciador=gerenciador, thread_id=42)
 ```
 
+Quando `gerenciador` está presente, cada turno de conversa também persiste a
+contagem **real** de tokens (schema `turnos`, relacionado a `threads` via FK
+`ON DELETE CASCADE`, colunas `prompt_tokens`/`completion_tokens`/`total_tokens`
+aceitando `NULL`). A migração é idempotente (`_migrar_schema()` em
+`persistencia.py`, via `CREATE TABLE IF NOT EXISTS`) e roda a cada abertura de
+conexão, então bancos `chat_memoria.db` antigos ganham a tabela `turnos`
+automaticamente.
+
+```python
+# Captura de usage em enviar_mensagem (chat_openai_memoria.py)
+usage_bruto = getattr(resposta, "usage", None)  # não-streaming
+prompt_tokens, completion_tokens, total_tokens = self._extrair_uso_tokens(usage_bruto)
+self.gerenciador.salvar_turno(self.thread_id, prompt_tokens, completion_tokens, total_tokens)
+
+# Consultar depois
+gerenciador.carregar_turnos(thread_id)       # tokens por turno, em ordem
+gerenciador.total_tokens_thread(thread_id)   # soma da thread (ignora NULL)
+```
+
+**Gotcha (streaming):** para receber `usage` em modo streaming, é preciso
+enviar `stream_options={"include_usage": True}` — o provedor retorna um chunk
+final só com `usage` e `choices=[]`, que o loop já trata via `continue`. Sem
+isso (ou em providers que não suportam), os tokens do turno ficam `NULL`.
+`_extrair_uso_tokens()` é defensivo: nunca lança exceção, e qualquer falha em
+`salvar_turno` é capturada e apenas logada em modo debug — a conversa nunca é
+interrompida por falta ou erro de persistência de tokens. A estimativa
+`contar_tokens_aproximado()` (sliding window, `/tokens`, alertas) continua
+inalterada; os tokens reais são um dado adicional, não um substituto.
+
 ### Padrão de Extensão de `ChatComMemoria`
 
 Novos comportamentos opcionais devem ser **injetados via parâmetros no `__init__`**, não implementados via herança ou variáveis globais. O parâmetro `gerenciador` é o exemplo canônico: quando `None`, a classe funciona exatamente como antes; quando presente, o comportamento extra é ativado de forma transparente. Esse padrão evita acoplamento e mantém o comportamento padrão inalterado para código existente.

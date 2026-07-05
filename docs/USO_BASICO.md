@@ -279,6 +279,29 @@ Para remover permanentemente uma conversa, use `/excluir <id>`.
 
 O título de uma nova thread é gerado automaticamente a partir dos primeiros 60 caracteres da primeira mensagem do usuário. Se a mensagem estiver em branco, o título será `"Conversa sem título"`. O título não é alterado ao retomar uma thread existente.
 
+### Contagem Real de Tokens por Turno
+
+Além da estimativa exibida pelo comando [`/tokens`](#tokens---contar-tokens) (baseada em ~4 caracteres = 1 token), quando a persistência SQLite está ativa o chat também grava a contagem **real** de tokens de cada turno, extraída do campo `usage` retornado pela API da OpenAI (`prompt_tokens`, `completion_tokens`, `total_tokens`).
+
+Esse registro acontece automaticamente, sem necessidade de nenhum comando:
+
+- Funciona tanto no modo padrão quanto no modo streaming (`OPENAI_STREAM=true`).
+- Se o provedor não retornar `usage` (ex.: Ollama, LM Studio, Azure, ou streaming sem suporte a `include_usage`), o turno é gravado normalmente e os campos de tokens ficam `NULL` — a conversa nunca é interrompida por falta desse dado.
+- Não há comando de CLI para exibir os tokens reais (o `/tokens` continua mostrando apenas a estimativa). Para consultar os valores gravados, use a API do `GerenciadorPersistencia` diretamente:
+
+```python
+from persistencia import GerenciadorPersistencia
+
+gerenciador = GerenciadorPersistencia("chat_memoria.db")
+
+# Tokens de cada turno de uma thread, em ordem
+turnos = gerenciador.carregar_turnos(thread_id=1)
+
+# Soma de tokens (prompt/completion/total) de toda a thread
+totais = gerenciador.total_tokens_thread(thread_id=1)
+print(totais)  # {'prompt_tokens': 120, 'completion_tokens': 340, 'total_tokens': 460}
+```
+
 ### Banco de Dados
 
 - **Localização:** `chat_memoria.db` na raiz do projeto

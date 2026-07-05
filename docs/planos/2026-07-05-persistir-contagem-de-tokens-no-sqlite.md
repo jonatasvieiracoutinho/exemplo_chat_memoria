@@ -425,13 +425,13 @@ os documentos efetivamente impactados são:
 ### Critérios de Sucesso:
 
 #### Verificação Automatizada:
-- [ ] Suíte de testes permanece verde após ajustes de documentação:
+- [x] Suíte de testes permanece verde após ajustes de documentação:
       `python -m pytest -q`
-- [ ] Os arquivos de documentação citados existem e foram atualizados (sem
+- [x] Os arquivos de documentação citados existem e foram atualizados (sem
       referência à feature como "planejada"/"pendente"):
       `grep -riE "planejad|pendente|TODO" .notebook/persistencia-sqlite.md docs/USO_BASICO.md`
       não retorna menções à contagem de tokens como não implementada.
-- [ ] A tabela `turnos` e os novos métodos aparecem documentados:
+- [x] A tabela `turnos` e os novos métodos aparecem documentados:
       `grep -rl "turnos\|salvar_turno" .notebook AGENTS.md docs` retorna os arquivos atualizados.
 
 #### ⛔ Pausa Obrigatória
