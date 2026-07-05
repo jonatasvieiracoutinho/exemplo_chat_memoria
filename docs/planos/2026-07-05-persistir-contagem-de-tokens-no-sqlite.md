@@ -226,11 +226,11 @@ def total_tokens_thread(self, thread_id: int) -> dict:
 ### Critérios de Sucesso:
 
 #### Verificação Automatizada:
-- [ ] Novos testes unitários da camada de persistência passam:
+- [x] Novos testes unitários da camada de persistência passam:
       `python -m pytest tests/test_persistencia.py -q`
-- [ ] Suíte completa continua verde (nenhuma regressão em `mensagens`/`threads`):
+- [x] Suíte completa continua verde (nenhuma regressão em `mensagens`/`threads`):
       `python -m pytest -q`
-- [ ] Import sem erro: `python -c "from persistencia import GerenciadorPersistencia; print('OK')"`
+- [x] Import sem erro: `python -c "from persistencia import GerenciadorPersistencia; print('OK')"`
 
 **Testes a criar nesta fase** (em `tests/test_persistencia.py`):
 - **Unitários** — tabela `turnos` criada (checar `sqlite_master`); `salvar_turno`
