@@ -532,6 +532,20 @@ class ChatComMemoria:
         modelo = self.modelo.lower()
         return modelo.startswith(("gpt-5", "o1", "o3", "o4"))
 
+    def _extrair_uso_tokens(self, usage):
+        """Extrai (prompt, completion, total) de um objeto `usage` da API.
+        Retorna (None, None, None) quando `usage` é ausente/incompleto —
+        ex.: base_url alternativa (Ollama/LM Studio/Azure) ou streaming sem
+        include_usage. Nunca lança exceção."""
+        if usage is None:
+            return None, None, None
+
+        def _get(campo):
+            valor = getattr(usage, campo, None)
+            return valor if isinstance(valor, int) else None
+
+        return _get("prompt_tokens"), _get("completion_tokens"), _get("total_tokens")
+
     def enviar_mensagem(self, mensagem: str) -> str:
         """
         Envia mensagem para a API mantendo o contexto completo.
@@ -568,11 +582,16 @@ class ChatComMemoria:
                 parametros["temperature"] = self.temperature
                 parametros["max_tokens"] = self.max_tokens
 
+            usage_bruto = None
             if self.stream:
                 # Streaming: imprime a resposta token a token conforme chega.
                 parametros["stream"] = True
+                parametros["stream_options"] = {"include_usage": True}
                 resposta_texto = ""
                 for chunk in self.client.chat.completions.create(**parametros):
+                    # O chunk final de usage chega sem choices; capturamos quando presente.
+                    if getattr(chunk, "usage", None) is not None:
+                        usage_bruto = chunk.usage
                     if not chunk.choices:
                         continue
                     delta = chunk.choices[0].delta.content
@@ -583,10 +602,23 @@ class ChatComMemoria:
                 # Chama a API e extrai a resposta completa de uma vez
                 resposta = self.client.chat.completions.create(**parametros)
                 resposta_texto = resposta.choices[0].message.content
+                usage_bruto = getattr(resposta, "usage", None)
 
             # Adiciona resposta ao histórico
             self.adicionar_mensagem("assistant", resposta_texto)
-            
+
+            # Persiste os tokens reais do turno no mesmo fluxo de gravação (RF2/RF3).
+            # Tolerante a ausência de usage e a falhas de escrita (RF7/CA7).
+            if self.gerenciador and self.thread_id:
+                prompt_tokens, completion_tokens, total_tokens = self._extrair_uso_tokens(usage_bruto)
+                try:
+                    self.gerenciador.salvar_turno(
+                        self.thread_id, prompt_tokens, completion_tokens, total_tokens
+                    )
+                except Exception as e:
+                    if self.modo_debug:
+                        self._registrar_log(f"\n[AVISO] Falha ao persistir tokens do turno: {e}\n")
+
             # Aplica sliding window se configurado
             if self._aplicar_janela_deslizante():
                 acoes_executadas.append(f"Sliding window aplicado: mantendo {self.tamanho_janela} pares de mensagens")

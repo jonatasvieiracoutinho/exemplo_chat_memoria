@@ -340,11 +340,11 @@ if self.gerenciador and self.thread_id:
 ### Critérios de Sucesso:
 
 #### Verificação Automatizada:
-- [ ] Novos testes de integração/unitários passam:
+- [x] Novos testes de integração/unitários passam:
       `python -m pytest tests/test_integracao_chat.py -q`
-- [ ] Suíte completa verde (sem regressão nos 44 testes existentes):
+- [x] Suíte completa verde (sem regressão nos 44 testes existentes):
       `python -m pytest -q`
-- [ ] Import sem erro: `python -c "from chat_openai_memoria import ChatComMemoria; print('OK')"`
+- [x] Import sem erro: `python -c "from chat_openai_memoria import ChatComMemoria; print('OK')"`
 
 **Testes a criar nesta fase** (em `tests/test_integracao_chat.py`, com `OpenAI`
 mockado):
