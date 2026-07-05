@@ -161,3 +161,147 @@ def test_titulo_nao_sobrescrito_ao_retomar_thread(db):
     chat.adicionar_mensagem("user", "Nova mensagem após retomar")
     threads = db.listar_threads()
     assert threads[0]["titulo"] == "Título original"
+
+
+# ---------- _extrair_uso_tokens ----------
+
+def _fake_usage(prompt_tokens=None, completion_tokens=None, total_tokens=None):
+    usage = MagicMock(spec=["prompt_tokens", "completion_tokens", "total_tokens"])
+    usage.prompt_tokens = prompt_tokens
+    usage.completion_tokens = completion_tokens
+    usage.total_tokens = total_tokens
+    return usage
+
+
+def test_extrair_uso_tokens_usage_completo(chat_sem_persistencia):
+    chat = chat_sem_persistencia
+    usage = _fake_usage(10, 20, 30)
+    assert chat._extrair_uso_tokens(usage) == (10, 20, 30)
+
+
+def test_extrair_uso_tokens_usage_none(chat_sem_persistencia):
+    chat = chat_sem_persistencia
+    assert chat._extrair_uso_tokens(None) == (None, None, None)
+
+
+def test_extrair_uso_tokens_campos_ausentes_ou_invalidos(chat_sem_persistencia):
+    chat = chat_sem_persistencia
+    usage = _fake_usage(prompt_tokens=10, completion_tokens="não-inteiro", total_tokens=None)
+    assert chat._extrair_uso_tokens(usage) == (10, None, None)
+
+
+# ---------- persistência de turno no fluxo (mock OpenAI) ----------
+
+def _mock_resposta_nao_streaming(conteudo, usage=None):
+    resposta = MagicMock()
+    resposta.choices = [MagicMock(message=MagicMock(content=conteudo))]
+    resposta.usage = usage
+    return resposta
+
+
+def _mock_chunk(delta_content=None, usage=None, sem_choices=False):
+    chunk = MagicMock()
+    chunk.usage = usage
+    if sem_choices:
+        chunk.choices = []
+    else:
+        chunk.choices = [MagicMock(delta=MagicMock(content=delta_content))]
+    return chunk
+
+
+def test_turno_persistido_nao_streaming_com_usage(chat_com_db):
+    chat, db = chat_com_db
+    usage = _fake_usage(10, 20, 30)
+    chat.client.chat.completions.create.return_value = _mock_resposta_nao_streaming(
+        "Resposta da API", usage
+    )
+    with patch("builtins.print"):
+        resposta = chat.enviar_mensagem("Pergunta")
+
+    assert resposta == "Resposta da API"
+    turnos = db.carregar_turnos(chat.thread_id)
+    assert len(turnos) == 1
+    assert turnos[0]["prompt_tokens"] == 10
+    assert turnos[0]["completion_tokens"] == 20
+    assert turnos[0]["total_tokens"] == 30
+    historico = db.carregar_historico(chat.thread_id)
+    assert len(historico) == 2
+
+
+def test_turno_persistido_streaming_com_usage_no_chunk_final(chat_com_db):
+    chat, db = chat_com_db
+    chat.stream = True
+    usage = _fake_usage(5, 15, 20)
+    chunks = [
+        _mock_chunk(delta_content="Olá"),
+        _mock_chunk(delta_content=" mundo"),
+        _mock_chunk(usage=usage, sem_choices=True),
+    ]
+    chat.client.chat.completions.create.return_value = iter(chunks)
+    with patch("builtins.print"):
+        resposta = chat.enviar_mensagem("Pergunta")
+
+    assert resposta == "Olá mundo"
+    turnos = db.carregar_turnos(chat.thread_id)
+    assert len(turnos) == 1
+    assert turnos[0]["total_tokens"] == 20
+    _, kwargs = chat.client.chat.completions.create.call_args
+    assert kwargs["stream_options"] == {"include_usage": True}
+
+
+def test_turno_persistido_com_null_quando_usage_ausente(chat_com_db):
+    chat, db = chat_com_db
+    chat.stream = True
+    chunks = [_mock_chunk(delta_content="Sem usage")]
+    chat.client.chat.completions.create.return_value = iter(chunks)
+    with patch("builtins.print"):
+        chat.enviar_mensagem("Pergunta")
+
+    turnos = db.carregar_turnos(chat.thread_id)
+    assert len(turnos) == 1
+    assert turnos[0]["prompt_tokens"] is None
+    assert turnos[0]["completion_tokens"] is None
+    assert turnos[0]["total_tokens"] is None
+    historico = db.carregar_historico(chat.thread_id)
+    assert len(historico) == 2
+
+
+def test_sem_gerenciador_nao_persiste_turno_nem_falha(chat_sem_persistencia):
+    chat = chat_sem_persistencia
+    chat.client.chat.completions.create.return_value = _mock_resposta_nao_streaming(
+        "Ok", _fake_usage(1, 2, 3)
+    )
+    with patch("builtins.print"):
+        resposta = chat.enviar_mensagem("Pergunta")
+    assert resposta == "Ok"
+
+
+def test_falha_em_salvar_turno_nao_interrompe_fluxo(chat_com_db):
+    chat, db = chat_com_db
+    chat.client.chat.completions.create.return_value = _mock_resposta_nao_streaming(
+        "Ok", _fake_usage(1, 2, 3)
+    )
+    with patch.object(db, "salvar_turno", side_effect=Exception("falha simulada")):
+        with patch("builtins.print"):
+            resposta = chat.enviar_mensagem("Pergunta")
+    assert resposta == "Ok"
+    historico = db.carregar_historico(chat.thread_id)
+    assert len(historico) == 2
+
+
+def test_durabilidade_tokens_apos_reabrir_banco(tmp_path):
+    caminho_db = str(tmp_path / "durabilidade.db")
+
+    g1 = GerenciadorPersistencia(caminho_db)
+    tid = g1.criar_thread("Thread durável")
+    g1.salvar_turno(tid, 10, 20, 30)
+    g1.fechar()
+
+    g2 = GerenciadorPersistencia(caminho_db)
+    turnos = g2.carregar_turnos(tid)
+    total = g2.total_tokens_thread(tid)
+    g2.fechar()
+
+    assert len(turnos) == 1
+    assert turnos[0]["prompt_tokens"] == 10
+    assert total["total_tokens"] == 30

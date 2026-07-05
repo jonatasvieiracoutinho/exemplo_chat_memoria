@@ -88,6 +88,7 @@ python exemplos_avancados.py
 - ✅ Personalização via system prompt
 - ✅ Exportação de conversas
 - ✅ Persistência SQLite de conversas (threads) — ativada por `PERSISTENCIA_SQLITE=true` no `.env`
+- ✅ Contagem real de tokens por turno (via `usage` da API), persistida junto com as threads
 
 ### Uso Programático
 
