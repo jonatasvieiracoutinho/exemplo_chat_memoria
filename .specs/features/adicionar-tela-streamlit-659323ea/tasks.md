@@ -216,10 +216,10 @@ T9 → T10
 
 **Done when**:
 
-- [ ] `st.session_state` guarda `chat`, `thread_id` e `gerenciador`, inicializados uma vez
-- [ ] Enviar mensagem exibe a resposta e o histórico; erro sanitizado aparece amigável
-- [ ] Teste e2e com `AppTest` (patch dos helpers do core) valida envio, histórico e persistência de estado entre reruns; usa `pytest.importorskip("streamlit")`
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] `st.session_state` guarda `chat`, `thread_id` e `gerenciador`, inicializados uma vez
+- [x] Enviar mensagem exibe a resposta e o histórico; erro sanitizado aparece amigável
+- [x] Teste e2e com `AppTest` (patch dos helpers do core) valida envio, histórico e persistência de estado entre reruns; usa `pytest.importorskip("streamlit")`
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: e2e
 **Gate**: full
