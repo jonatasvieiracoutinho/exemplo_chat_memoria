@@ -161,11 +161,11 @@ T9 → T10
 
 **Done when**:
 
-- [ ] `historico_para_ui` devolve pares `(role, content)` na ordem de `chat.historico`
-- [ ] `resumo_tokens` traz estimativa aproximada e, sob persistência com `thread_id`, o total persistido; degrada para aproximado se `total_tokens_thread` vier nulo
-- [ ] `exportar_conversa_texto` usa arquivo temporário (nunca no repositório) e devolve `(nome, conteudo)`
-- [ ] Testes unitários cobrem histórico, tokens (com/sem persistência e nulos) e exportação
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] `historico_para_ui` devolve pares `(role, content)` na ordem de `chat.historico`
+- [x] `resumo_tokens` traz estimativa aproximada e, sob persistência com `thread_id`, o total persistido; degrada para aproximado se `total_tokens_thread` vier nulo
+- [x] `exportar_conversa_texto` usa arquivo temporário (nunca no repositório) e devolve `(nome, conteudo)`
+- [x] Testes unitários cobrem histórico, tokens (com/sem persistência e nulos) e exportação
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: unit
 **Gate**: quick

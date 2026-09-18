@@ -1,3 +1,5 @@
+import tempfile
+
 import pytest
 from unittest.mock import MagicMock, patch
 
@@ -122,3 +124,79 @@ def test_enviar_mensagem_seguro_texto_em_branco_nao_chama_api():
     assert erro is None
     chat.enviar_mensagem.assert_not_called()
     assert chat.historico == []
+
+
+# ---------- historico_para_ui ----------
+
+def test_historico_para_ui_devolve_pares_na_ordem():
+    from app_streamlit_core import historico_para_ui
+    chat = MagicMock()
+    chat.historico = [
+        {"role": "user", "content": "Pergunta"},
+        {"role": "assistant", "content": "Resposta"},
+    ]
+    pares = historico_para_ui(chat)
+    assert pares == [("user", "Pergunta"), ("assistant", "Resposta")]
+
+
+def test_historico_para_ui_vazio_devolve_lista_vazia():
+    from app_streamlit_core import historico_para_ui
+    chat = MagicMock()
+    chat.historico = []
+    assert historico_para_ui(chat) == []
+
+
+# ---------- resumo_tokens ----------
+
+def test_resumo_tokens_sem_persistencia_traz_so_aproximado():
+    from app_streamlit_core import resumo_tokens
+    chat = MagicMock()
+    chat.contar_tokens_aproximado.return_value = 42
+    chat.gerenciador = None
+    chat.thread_id = None
+    resultado = resumo_tokens(chat)
+    assert resultado == {"aproximado": 42, "total_persistido": None}
+
+
+def test_resumo_tokens_com_persistencia_soma_total_persistido():
+    from app_streamlit_core import resumo_tokens
+    chat = MagicMock()
+    chat.contar_tokens_aproximado.return_value = 42
+    chat.gerenciador = MagicMock()
+    chat.gerenciador.total_tokens_thread.return_value = {"total_tokens": 500}
+    chat.thread_id = 7
+    resultado = resumo_tokens(chat)
+    assert resultado == {"aproximado": 42, "total_persistido": 500}
+    chat.gerenciador.total_tokens_thread.assert_called_once_with(7)
+
+
+def test_resumo_tokens_degrada_para_aproximado_quando_total_nulo():
+    from app_streamlit_core import resumo_tokens
+    chat = MagicMock()
+    chat.contar_tokens_aproximado.return_value = 42
+    chat.gerenciador = MagicMock()
+    chat.gerenciador.total_tokens_thread.return_value = None
+    chat.thread_id = 7
+    resultado = resumo_tokens(chat)
+    assert resultado == {"aproximado": 42, "total_persistido": None}
+
+
+# ---------- exportar_conversa_texto ----------
+
+def test_exportar_conversa_texto_usa_arquivo_temporario_e_devolve_conteudo():
+    import os
+    from app_streamlit_core import exportar_conversa_texto
+    chat = MagicMock()
+    caminho_usado = {}
+
+    def _gravar(caminho):
+        caminho_usado["valor"] = caminho
+        with open(caminho, "w", encoding="utf-8") as f:
+            f.write("VOCÊ:\nOlá\n\nASSISTENTE:\nOi\n\n")
+
+    chat.exportar_conversa.side_effect = _gravar
+    nome, conteudo = exportar_conversa_texto(chat)
+    assert "Olá" in conteudo and "Oi" in conteudo
+    assert nome.endswith(".txt")
+    assert caminho_usado["valor"].startswith(tempfile.gettempdir())
+    assert not os.path.exists(caminho_usado["valor"])

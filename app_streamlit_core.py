@@ -7,6 +7,7 @@ negócio. `app_streamlit.py` faz apenas o wiring dos widgets.
 """
 
 import os
+import tempfile
 
 from chat_openai_memoria import ChatComMemoria
 
@@ -45,3 +46,31 @@ def enviar_mensagem_seguro(chat, texto: str):
         return chat.enviar_mensagem(texto), None
     except Exception as exc:
         return None, sanitizar_erro(exc)
+
+
+def historico_para_ui(chat) -> list:
+    """Devolve pares (role, content) na ordem de `chat.historico`."""
+    return [(msg["role"], msg["content"]) for msg in chat.historico]
+
+
+def resumo_tokens(chat) -> dict:
+    """Estimativa aproximada e, sob persistência com thread_id, o total
+    persistido. Degrada para aproximado se `total_tokens_thread` vier nulo."""
+    resultado = {"aproximado": chat.contar_tokens_aproximado(), "total_persistido": None}
+    if chat.gerenciador and chat.thread_id:
+        dados = chat.gerenciador.total_tokens_thread(chat.thread_id)
+        if dados:
+            resultado["total_persistido"] = dados.get("total_tokens")
+    return resultado
+
+
+def exportar_conversa_texto(chat) -> tuple:
+    """Exporta a conversa via `exportar_conversa()` em arquivo temporário
+    (nunca no repositório) e devolve (nome, conteudo)."""
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8") as tmp:
+        caminho = tmp.name
+    chat.exportar_conversa(caminho)
+    with open(caminho, "r", encoding="utf-8") as f:
+        conteudo = f.read()
+    os.remove(caminho)
+    return os.path.basename(caminho), conteudo
