@@ -140,7 +140,7 @@ Cada requisito recebe um ID rastreável. A coluna **Origem** liga ao ID congelad
 | STRM-08 | RF-07 | P2 | Tasks | Implementing |
 | STRM-09 | RF-08, CA-02 | P3 | Tasks | Implementing |
 | STRM-10 | RF-10 | P1 | Tasks | Implementing |
-| STRM-11 | RF-11, CA-03, CA-05 | P4 | Tasks | Pending |
+| STRM-11 | RF-11, CA-03, CA-05 | P4 | Tasks | Implementing |
 | STRM-12 | RF-12, CA-04, CA-05 | P4 | Tasks | Implementing |
 | STRM-13 | RF-13 | P4 | Tasks | Pending |
 | STRM-14 | CA-08 | P1 | Tasks | Implementing |

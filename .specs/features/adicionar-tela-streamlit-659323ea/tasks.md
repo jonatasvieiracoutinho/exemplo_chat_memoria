@@ -298,10 +298,10 @@ T9 → T10
 
 **Done when**:
 
-- [ ] Conteúdo tem a checagem de ausência do `.venv` com mensagem clara e `exit /b 1`
-- [ ] Conteúdo tem ativação do `.venv` e `streamlit run app_streamlit.py --server.address=localhost`
-- [ ] Teste unitário lê o arquivo e afirma os trechos exigidos
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] Conteúdo tem a checagem de ausência do `.venv` com mensagem clara e `exit /b 1`
+- [x] Conteúdo tem ativação do `.venv` e `streamlit run app_streamlit.py --server.address=localhost`
+- [x] Teste unitário lê o arquivo e afirma os trechos exigidos
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: unit
 **Gate**: quick
