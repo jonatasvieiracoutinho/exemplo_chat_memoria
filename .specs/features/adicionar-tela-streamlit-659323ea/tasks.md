@@ -133,11 +133,11 @@ T9 → T10
 
 **Done when**:
 
-- [ ] Sucesso retorna `(resposta, None)`; exceção retorna `(None, msg_sanitizada)`
-- [ ] Mensagem sanitizada não contém a `OPENAI_API_KEY`, stack trace nem o texto bruto da exceção
-- [ ] Texto vazio/branco não chama a API e mantém o histórico inalterado
-- [ ] Testes unitários cobrem sucesso, exceção e entrada vazia
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] Sucesso retorna `(resposta, None)`; exceção retorna `(None, msg_sanitizada)`
+- [x] Mensagem sanitizada não contém a `OPENAI_API_KEY`, stack trace nem o texto bruto da exceção
+- [x] Texto vazio/branco não chama a API e mantém o histórico inalterado
+- [x] Testes unitários cobrem sucesso, exceção e entrada vazia
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: unit
 **Gate**: quick

@@ -131,10 +131,10 @@ Cada requisito recebe um ID rastreável. A coluna **Origem** liga ao ID congelad
 | Requirement ID | Origem | Story | Phase | Status |
 | -------------- | ------ | ----- | ----- | ------ |
 | STRM-01 | RF-01, CA-01 | P1 | Tasks | Implementing |
-| STRM-02 | RF-02 | P1 | Tasks | Pending |
+| STRM-02 | RF-02 | P1 | Tasks | Implementing |
 | STRM-03 | RF-03 | P1 | Tasks | Pending |
 | STRM-04 | RF-04, CA-06 | P1 | Tasks | Pending |
-| STRM-05 | RF-09, CA-07 | P1 | Tasks | Pending |
+| STRM-05 | RF-09, CA-07 | P1 | Tasks | Implementing |
 | STRM-06 | RF-05 | P2 | Tasks | Pending |
 | STRM-07 | RF-06 | P2 | Tasks | Pending |
 | STRM-08 | RF-07 | P2 | Tasks | Pending |
