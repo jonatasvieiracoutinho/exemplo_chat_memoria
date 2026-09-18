@@ -73,7 +73,15 @@ python chat_openai_memoria.py --exemplo
 
 # Exemplos avançados
 python exemplos_avancados.py
+
+# Interface web (Streamlit)
+streamlit run app_streamlit.py --server.address=localhost
+# ou use o script de inicialização:
+./iniciar_streamlit.sh   # Linux/macOS
+iniciar_streamlit.bat    # Windows
 ```
+
+⚠️ **Nota de segurança:** o app Streamlit faz bind em `localhost` (`--server.address=localhost`), acessível apenas na própria máquina; a `OPENAI_API_KEY` é lida do `.env` no servidor e nunca é enviada ao navegador.
 
 📖 Para instalação detalhada, consulte [INSTALACAO.md](docs/INSTALACAO.md)
 
