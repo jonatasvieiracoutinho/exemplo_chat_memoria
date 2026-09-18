@@ -12,3 +12,6 @@ colorama>=0.4.6
 # Testes automatizados
 pytest>=8.0.0
 
+# Front-end web do chat
+streamlit>=1.28.0
+

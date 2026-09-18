@@ -325,10 +325,10 @@ T9 → T10
 
 **Done when**:
 
-- [ ] `requirements.txt` lista `streamlit>=1.28.0`
-- [ ] Dependências pré-existentes permanecem
-- [ ] Teste unitário afirma a presença de `streamlit` com a versão mínima
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] `requirements.txt` lista `streamlit>=1.28.0`
+- [x] Dependências pré-existentes permanecem
+- [x] Teste unitário afirma a presença de `streamlit` com a versão mínima
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: unit
 **Gate**: quick
