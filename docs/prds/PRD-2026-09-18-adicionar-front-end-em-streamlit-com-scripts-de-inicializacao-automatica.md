@@ -78,55 +78,55 @@ scripts para Windows (`.bat`) e Linux/Mac (`.sh`).
 
 ## 6. Requisitos funcionais
 
-- **RF1** — Fornecer uma aplicação Streamlit funcional integrada ao projeto, iniciável
+- **RF-01** — Fornecer uma aplicação Streamlit funcional integrada ao projeto, iniciável
   por `streamlit run`.
-- **RF2** — A UI deve permitir enviar uma mensagem e receber a resposta do assistente,
+- **RF-02** — A UI deve permitir enviar uma mensagem e receber a resposta do assistente,
   chamando `ChatComMemoria.enviar_mensagem()` e exibindo o **valor de retorno** (sem
   depender de saída em stdout/ANSI).
-- **RF3** — Exibir o histórico da conversa da sessão em ordem, distinguindo mensagens
+- **RF-03** — Exibir o histórico da conversa da sessão em ordem, distinguindo mensagens
   do usuário e do assistente.
-- **RF4** — Persistir o estado da sessão (instância de `ChatComMemoria`, `thread_id`,
+- **RF-04** — Persistir o estado da sessão (instância de `ChatComMemoria`, `thread_id`,
   histórico) em `st.session_state`, mantendo a continuidade entre interações.
-- **RF5** — Disponibilizar ação de **limpar conversa** reaproveitando
+- **RF-05** — Disponibilizar ação de **limpar conversa** reaproveitando
   `limpar_historico()`.
-- **RF6** — Exibir informação de **tokens** da conversa (estimativa e/ou tokens reais de
+- **RF-06** — Exibir informação de **tokens** da conversa (estimativa e/ou tokens reais de
   turno já disponíveis), reaproveitando os métodos existentes.
-- **RF7** — Disponibilizar ação de **exportar conversa** reaproveitando
+- **RF-07** — Disponibilizar ação de **exportar conversa** reaproveitando
   `exportar_conversa()`.
-- **RF8** — Quando `PERSISTENCIA_SQLITE=true`, permitir **listar**, **retomar** e
+- **RF-08** — Quando `PERSISTENCIA_SQLITE=true`, permitir **listar**, **retomar** e
   **excluir** threads, reaproveitando `GerenciadorPersistencia`; quando desativada,
   ocultar/desabilitar essas ações.
-- **RF9** — Capturar exceções levantadas por `enviar_mensagem()` e exibir mensagem de
+- **RF-09** — Capturar exceções levantadas por `enviar_mensagem()` e exibir mensagem de
   erro amigável na tela, sem expor detalhes sensíveis (ex.: chave, stack trace).
-- **RF10** — Reutilizar o mesmo `.env`/variáveis já validadas por `ChatComMemoria`, sem
+- **RF-10** — Reutilizar o mesmo `.env`/variáveis já validadas por `ChatComMemoria`, sem
   novo mecanismo de configuração; a `OPENAI_API_KEY` permanece exclusivamente no
   servidor, nunca no browser.
-- **RF11** — Fornecer `iniciar_streamlit.bat` (Windows) que ativa `.venv` e roda
+- **RF-11** — Fornecer `iniciar_streamlit.bat` (Windows) que ativa `.venv` e roda
   `streamlit run <app>`, tratando ausência do `.venv` com mensagem clara (padrão do
   `iniciar_chat.bat`).
-- **RF12** — Fornecer `iniciar_streamlit.sh` (Linux/Mac) equivalente, com permissão de
+- **RF-12** — Fornecer `iniciar_streamlit.sh` (Linux/Mac) equivalente, com permissão de
   execução e ativação de `.venv`.
-- **RF13** — Adicionar `streamlit` ao `requirements.txt`.
+- **RF-13** — Adicionar `streamlit` ao `requirements.txt`.
 
 ## 7. Critérios de aceite
 
-- **CA1** — Existe uma aplicação Streamlit funcional integrada ao projeto que sobe via
+- **CA-01** — Existe uma aplicação Streamlit funcional integrada ao projeto que sobe via
   `streamlit run` e permite conversar com o assistente.
-- **CA2** — A interface permite usar as funcionalidades principais: enviar/receber
+- **CA-02** — A interface permite usar as funcionalidades principais: enviar/receber
   mensagens, ver histórico, limpar conversa, ver tokens e exportar; e, com persistência
   ativada, listar/retomar/excluir threads.
-- **CA3** — Existe `iniciar_streamlit.bat` que inicia o front-end no Windows sem
+- **CA-03** — Existe `iniciar_streamlit.bat` que inicia o front-end no Windows sem
   comandos manuais adicionais.
-- **CA4** — Existe `iniciar_streamlit.sh` que inicia o front-end no Linux/Mac sem
+- **CA-04** — Existe `iniciar_streamlit.sh` que inicia o front-end no Linux/Mac sem
   comandos manuais adicionais.
-- **CA5** — Ambos os scripts ativam o `.venv` e executam corretamente a aplicação
+- **CA-05** — Ambos os scripts ativam o `.venv` e executam corretamente a aplicação
   Streamlit; na ausência do `.venv`, exibem mensagem de erro clara em vez de falhar
   silenciosamente.
-- **CA6** — O estado da conversa persiste entre interações da mesma sessão (não é
+- **CA-06** — O estado da conversa persiste entre interações da mesma sessão (não é
   reiniciado a cada mensagem).
-- **CA7** — Erros da API são exibidos de forma amigável, sem vazar chave nem detalhes
+- **CA-07** — Erros da API são exibidos de forma amigável, sem vazar chave nem detalhes
   internos.
-- **CA8** — A CLI existente e a API pública de `ChatComMemoria` permanecem inalteradas
+- **CA-08** — A CLI existente e a API pública de `ChatComMemoria` permanecem inalteradas
   (os testes atuais, incl. `tests/test_integracao_chat.py`, continuam válidos).
 
 ## 8. Impactos / restrições técnicas relevantes
