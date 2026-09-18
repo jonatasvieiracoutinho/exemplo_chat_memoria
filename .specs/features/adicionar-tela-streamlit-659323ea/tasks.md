@@ -189,10 +189,10 @@ T9 → T10
 
 **Done when**:
 
-- [ ] `retomar_thread` retorna chat com histórico carregado da thread
-- [ ] `excluir_thread` retorna `True` quando remove e `False` para id inexistente
-- [ ] Teste de integração com `GerenciadorPersistencia(":memory:")` cobre criar→listar→retomar→excluir ponta a ponta
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] `retomar_thread` retorna chat com histórico carregado da thread
+- [x] `excluir_thread` retorna `True` quando remove e `False` para id inexistente
+- [x] Teste de integração com `GerenciadorPersistencia(":memory:")` cobre criar→listar→retomar→excluir ponta a ponta
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: integration
 **Gate**: full

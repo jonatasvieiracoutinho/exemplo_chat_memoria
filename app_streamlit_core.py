@@ -64,6 +64,22 @@ def resumo_tokens(chat) -> dict:
     return resultado
 
 
+def listar_threads(gerenciador) -> list:
+    """Lista as threads persistidas via `GerenciadorPersistencia`."""
+    return gerenciador.listar_threads()
+
+
+def retomar_thread(gerenciador, thread_id) -> ChatComMemoria:
+    """Reconstrói `ChatComMemoria` com o `thread_id` selecionado, carregando
+    seu histórico a partir da persistência."""
+    return construir_sessao_chat(gerenciador=gerenciador, thread_id=thread_id)
+
+
+def excluir_thread(gerenciador, thread_id) -> bool:
+    """Exclui a thread; `True` quando remove, `False` para id inexistente."""
+    return gerenciador.excluir_thread(thread_id)
+
+
 def exportar_conversa_texto(chat) -> tuple:
     """Exporta a conversa via `exportar_conversa()` em arquivo temporário
     (nunca no repositório) e devolve (nome, conteudo)."""
