@@ -106,10 +106,10 @@ T9 → T10
 
 **Done when**:
 
-- [ ] `persistencia_ativa()` lê `PERSISTENCIA_SQLITE` do ambiente (true/false)
-- [ ] `construir_sessao_chat` retorna `ChatComMemoria` sem alterar a assinatura pública do ctor
-- [ ] Testes unitários cobrem persistência ligada/desligada (mock de `OpenAI`, `patch.dict` env como em `tests/test_integracao_chat.py`)
-- [ ] Gate `python -m pytest tests/ -q` passa; suíte pré-existente intacta (nenhum teste removido)
+- [x] `persistencia_ativa()` lê `PERSISTENCIA_SQLITE` do ambiente (true/false)
+- [x] `construir_sessao_chat` retorna `ChatComMemoria` sem alterar a assinatura pública do ctor
+- [x] Testes unitários cobrem persistência ligada/desligada (mock de `OpenAI`, `patch.dict` env como em `tests/test_integracao_chat.py`)
+- [x] Gate `python -m pytest tests/ -q` passa; suíte pré-existente intacta (nenhum teste removido)
 
 **Tests**: unit
 **Gate**: quick
