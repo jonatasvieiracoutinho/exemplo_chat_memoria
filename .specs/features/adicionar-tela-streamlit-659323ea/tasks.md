@@ -352,10 +352,10 @@ T9 → T10
 
 **Done when**:
 
-- [ ] README documenta `iniciar_streamlit` e o `streamlit run`
-- [ ] README traz a nota de bind local (`--server.address=localhost`) e chave server-side
-- [ ] Teste unitário afirma as menções esperadas no README
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] README documenta `iniciar_streamlit` e o `streamlit run`
+- [x] README traz a nota de bind local (`--server.address=localhost`) e chave server-side
+- [x] Teste unitário afirma as menções esperadas no README
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: unit
 **Gate**: quick
