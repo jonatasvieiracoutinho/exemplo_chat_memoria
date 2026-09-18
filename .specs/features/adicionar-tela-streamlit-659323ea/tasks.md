@@ -243,11 +243,11 @@ T9 → T10
 
 **Done when**:
 
-- [ ] Limpar esvazia o histórico exibido; tokens aparecem como métrica
-- [ ] Botão de download entrega o conteúdo exportado
-- [ ] Painel de threads aparece só quando `PERSISTENCIA_SQLITE=true` e some quando desativado
-- [ ] Teste e2e com `AppTest` cobre limpar, tokens, export e presença/ausência do painel conforme a flag
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] Limpar esvazia o histórico exibido; tokens aparecem como métrica
+- [x] Botão de download entrega o conteúdo exportado
+- [x] Painel de threads aparece só quando `PERSISTENCIA_SQLITE=true` e some quando desativado
+- [x] Teste e2e com `AppTest` cobre limpar, tokens, export e presença/ausência do painel conforme a flag
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: e2e
 **Gate**: full
