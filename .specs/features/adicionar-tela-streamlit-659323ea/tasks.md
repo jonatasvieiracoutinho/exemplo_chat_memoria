@@ -271,10 +271,10 @@ T9 → T10
 
 **Done when**:
 
-- [ ] Sem `.venv`, o script exibe mensagem de erro clara e `exit` ≠ 0
-- [ ] Conteúdo contém `streamlit run app_streamlit.py` e `--server.address=localhost`
-- [ ] Teste de integração roda o script num diretório temporário sem `.venv` (assert exit ≠ 0 + mensagem) e verifica o conteúdo
-- [ ] Gate `python -m pytest tests/ -q` passa
+- [x] Sem `.venv`, o script exibe mensagem de erro clara e `exit` ≠ 0
+- [x] Conteúdo contém `streamlit run app_streamlit.py` e `--server.address=localhost`
+- [x] Teste de integração roda o script num diretório temporário sem `.venv` (assert exit ≠ 0 + mensagem) e verifica o conteúdo
+- [x] Gate `python -m pytest tests/ -q` passa
 
 **Tests**: integration
 **Gate**: full
