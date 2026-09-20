@@ -119,10 +119,10 @@ T1 → T2 → T3
 
 **Done when**:
 
-- [ ] Na falha, a fala do usuário continua visível e apenas a mensagem sanitizada é exibida via `st.error`
-- [ ] Teste em `tests/test_app_streamlit_ui.py`: mock de erro que NÃO anexa ao histórico mostra a bolha do usuário e exatamente um `st.error` sanitizado (discrimina o bug atual)
-- [ ] Gate check passes: `python3 -m pytest tests/`
-- [ ] Test count: suíte atual continua passando e ao menos 1 teste novo passa (sem deleções silenciosas)
+- [x] Na falha, a fala do usuário continua visível e apenas a mensagem sanitizada é exibida via `st.error`
+- [x] Teste em `tests/test_app_streamlit_ui.py`: mock de erro que NÃO anexa ao histórico mostra a bolha do usuário e exatamente um `st.error` sanitizado (discrimina o bug atual)
+- [x] Gate check passes: `python3 -m pytest tests/`
+- [x] Test count: suíte atual continua passando e ao menos 1 teste novo passa (sem deleções silenciosas)
 
 **Tests**: integration
 **Gate**: full

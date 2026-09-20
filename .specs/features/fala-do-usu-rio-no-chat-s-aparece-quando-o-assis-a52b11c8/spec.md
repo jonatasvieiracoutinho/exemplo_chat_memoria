@@ -79,7 +79,7 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 | CHAT-03 | P1 | RF-04 | Tasks | Implementing |
 | CHAT-04 | P1 | RF-03, CA-03 | Tasks | Implementing |
 | CHAT-05 | P1 | RF-05, CA-04, CA-05 | Tasks | Implementing |
-| CHAT-06 | P1 | RF-06, CA-06 | Tasks | Pending |
+| CHAT-06 | P1 | RF-06, CA-06 | Tasks | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]` (e.g., `CHAT-01`)
 

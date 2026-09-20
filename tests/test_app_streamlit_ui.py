@@ -255,6 +255,29 @@ def test_dois_envios_consecutivos_nao_duplicam_bolhas():
     rerun_mock.assert_not_called()
 
 
+def test_erro_sanitizado_mantem_fala_do_usuario_visivel_sem_append():
+    """Discrimina o bug: na falha, a fala do usuário deve permanecer visível
+    e apenas um st.error sanitizado deve aparecer, sem bolha de assistente."""
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock()
+
+    def _enviar_com_erro_sem_append(c, texto):
+        return None, "Não foi possível obter resposta agora. Tente novamente em instantes."
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
+         patch("app_streamlit_core.enviar_mensagem_seguro", side_effect=_enviar_com_erro_sem_append):
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.chat_input[0].set_value("Olá").run()
+
+    textos = [m.markdown[0].value for m in at.chat_message]
+    assert textos == ["Olá"]
+    assert len(at.error) == 1
+    assert "Não foi possível obter resposta" in at.error[0].value
+
+
 def test_sidebar_excluir_thread_chama_helper_do_nucleo():
     from streamlit.testing.v1 import AppTest
 
