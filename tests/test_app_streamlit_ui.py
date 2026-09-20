@@ -198,6 +198,86 @@ def test_sidebar_retomar_thread_atualiza_sessao_e_historico():
     assert at.session_state["thread_id"] == 1
 
 
+def test_bolha_usuario_aparece_imediatamente_com_spinner_mesmo_sem_append():
+    """Discrimina o bug: a bolha do usuário deve ser pintada pela camada de
+    wiring antes da geração, independente do núcleo anexar ao histórico."""
+    from streamlit.testing.v1 import AppTest
+    import streamlit as st
+
+    chat = _chat_mock()
+
+    def _enviar_sem_append(c, texto):
+        return None, "Não foi possível obter resposta agora. Tente novamente em instantes."
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
+         patch("app_streamlit_core.enviar_mensagem_seguro", side_effect=_enviar_sem_append), \
+         patch("app_streamlit.st.spinner", wraps=st.spinner) as spinner_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.chat_input[0].set_value("Olá").run()
+
+    textos = [m.markdown[0].value for m in at.chat_message]
+    assert "Olá" in textos
+    spinner_mock.assert_called_once_with("Gerando resposta...")
+
+
+def test_dois_envios_consecutivos_nao_duplicam_bolhas():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock()
+    enviar_mock = MagicMock()
+
+    def _enviar(c, texto):
+        c.historico.append({"role": "user", "content": texto})
+        c.historico.append({"role": "assistant", "content": f"Resposta para: {texto}"})
+        return f"Resposta para: {texto}", None
+
+    enviar_mock.side_effect = _enviar
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
+         patch("app_streamlit_core.enviar_mensagem_seguro", enviar_mock), \
+         patch("app_streamlit.st.rerun") as rerun_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.chat_input[0].set_value("Primeira").run()
+        at.chat_input[0].set_value("Segunda").run()
+
+    textos = [m.markdown[0].value for m in at.chat_message]
+    assert textos == [
+        "Primeira",
+        "Resposta para: Primeira",
+        "Segunda",
+        "Resposta para: Segunda",
+    ]
+    assert enviar_mock.call_count == 2
+    rerun_mock.assert_not_called()
+
+
+def test_erro_sanitizado_mantem_fala_do_usuario_visivel_sem_append():
+    """Discrimina o bug: na falha, a fala do usuário deve permanecer visível
+    e apenas um st.error sanitizado deve aparecer, sem bolha de assistente."""
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock()
+
+    def _enviar_com_erro_sem_append(c, texto):
+        return None, "Não foi possível obter resposta agora. Tente novamente em instantes."
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
+         patch("app_streamlit_core.enviar_mensagem_seguro", side_effect=_enviar_com_erro_sem_append):
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.chat_input[0].set_value("Olá").run()
+
+    textos = [m.markdown[0].value for m in at.chat_message]
+    assert textos == ["Olá"]
+    assert len(at.error) == 1
+    assert "Não foi possível obter resposta" in at.error[0].value
+
+
 def test_sidebar_excluir_thread_chama_helper_do_nucleo():
     from streamlit.testing.v1 import AppTest
 
