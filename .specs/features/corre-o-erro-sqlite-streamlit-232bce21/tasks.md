@@ -107,11 +107,11 @@ T2 → T4
 
 **Done when**:
 
-- [ ] Helper simula rerun executando operações de persistência em thread distinta da que criou o gerenciador
-- [ ] Cenário: após renderização inicial e primeiro envio, não ocorre erro de conexão entre execuções; lista de conversas e histórico ficam disponíveis
-- [ ] Asserção: armazenamento com exatamente uma conversa ativa, duas mensagens ordenadas (pessoa depois assistente) e um registro de uso com entrada/saída/total do provedor mockado
-- [ ] Gate check passes: `python3 -m pytest tests/test_persistencia.py tests/test_streamlit_rerun_persistencia.py -q`
-- [ ] Test count: novos testes de integração passam (nenhum teste silenciosamente removido)
+- [x] Helper simula rerun executando operações de persistência em thread distinta da que criou o gerenciador
+- [x] Cenário: após renderização inicial e primeiro envio, não ocorre erro de conexão entre execuções; lista de conversas e histórico ficam disponíveis
+- [x] Asserção: armazenamento com exatamente uma conversa ativa, duas mensagens ordenadas (pessoa depois assistente) e um registro de uso com entrada/saída/total do provedor mockado
+- [x] Gate check passes: `python3 -m pytest tests/test_persistencia.py tests/test_streamlit_rerun_persistencia.py -q`
+- [x] Test count: novos testes de integração passam (nenhum teste silenciosamente removido)
 
 **Tests**: integration
 **Gate**: full
