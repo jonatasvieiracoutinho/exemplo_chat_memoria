@@ -1,4 +1,5 @@
 import sqlite3
+import threading
 
 import pytest
 from persistencia import GerenciadorPersistencia
@@ -301,10 +302,11 @@ def test_migracao_idempotente_sobre_banco_pre_existente(tmp_path):
     conexao_antiga.close()
 
     g1 = GerenciadorPersistencia(caminho_db)
-    cursor = g1.conn.execute(
-        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
-    )
-    tabelas = {row[0] for row in cursor.fetchall()}
+    with sqlite3.connect(caminho_db) as verificacao:
+        cursor = verificacao.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+        )
+        tabelas = {row[0] for row in cursor.fetchall()}
     assert "turnos" in tabelas
     threads = g1.listar_threads()
     assert len(threads) == 1
@@ -313,10 +315,59 @@ def test_migracao_idempotente_sobre_banco_pre_existente(tmp_path):
 
     # abrir novamente não deve gerar erro nem duplicar estrutura
     g2 = GerenciadorPersistencia(caminho_db)
-    cursor = g2.conn.execute(
-        "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='turnos'"
-    )
-    assert cursor.fetchone()[0] == 1
+    with sqlite3.connect(caminho_db) as verificacao:
+        cursor = verificacao.execute(
+            "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='turnos'"
+        )
+        assert cursor.fetchone()[0] == 1
     threads = g2.listar_threads()
     assert len(threads) == 1
     g2.fechar()
+
+
+# ---------- caracteres especiais como dado literal ----------
+
+def test_caracteres_especiais_tratados_como_dado_literal(tmp_path):
+    caminho_db = str(tmp_path / "especiais.db")
+    g = GerenciadorPersistencia(caminho_db)
+    try:
+        tid_alvo = g.criar_thread("Thread alvo")
+        tid_outra = g.criar_thread("Outra conversa")
+        conteudo_malicioso = "Robert'); DROP TABLE threads;-- \"aspas\" 'apóstrofo'"
+        g.salvar_mensagem(tid_alvo, "user", conteudo_malicioso, 1)
+
+        historico = g.carregar_historico(tid_alvo)
+        assert historico[0]["content"] == conteudo_malicioso
+        assert g.thread_existe(tid_alvo)
+        assert g.thread_existe(tid_outra)
+        assert g.carregar_historico(tid_outra) == []
+    finally:
+        g.fechar()
+
+
+# ---------- uso a partir de outra thread (modo arquivo) ----------
+
+def test_operacao_em_thread_diferente_da_criacao_nao_levanta_erro(tmp_path):
+    caminho_db = str(tmp_path / "rerun.db")
+    g = GerenciadorPersistencia(caminho_db)
+    resultado = {}
+
+    def operar_em_outra_execucao():
+        try:
+            tid = g.criar_thread("Criada em outra thread")
+            g.salvar_mensagem(tid, "user", "msg", 1)
+            resultado["thread_id"] = tid
+            resultado["historico"] = g.carregar_historico(tid)
+        except Exception as exc:  # noqa: BLE001 - captura para asserção no thread principal
+            resultado["erro"] = exc
+
+    outra_execucao = threading.Thread(target=operar_em_outra_execucao)
+    outra_execucao.start()
+    outra_execucao.join()
+
+    try:
+        assert "erro" not in resultado
+        assert len(resultado["historico"]) == 1
+        assert resultado["historico"][0]["content"] == "msg"
+    finally:
+        g.fechar()

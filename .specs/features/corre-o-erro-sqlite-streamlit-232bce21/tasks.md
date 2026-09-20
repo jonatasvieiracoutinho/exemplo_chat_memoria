@@ -78,12 +78,12 @@ T2 → T4
 
 **Done when**:
 
-- [ ] `_conexao` (context manager) abre conexão nova por operação no modo arquivo, aplica `row_factory` e `PRAGMA foreign_keys=ON`, faz commit no sucesso e fecha no `finally`
-- [ ] Modo `:memory:`/`mode=memory` mantém conexão única compartilhada; `fechar()` fecha em memória e é no-op no modo arquivo
-- [ ] Todos os métodos públicos usam `_conexao`; `salvar_turno` mantém SELECT MAX(ordem)+INSERT na mesma conexão; assinaturas inalteradas
-- [ ] `tests/test_persistencia.py`: teste de migração em modo arquivo lê via conexão nova (sem `.conn`); novo teste de caracteres especiais (aspas/apóstrofos como dado literal, sem afetar outra conversa); novo teste de uso a partir de outra thread sem `ProgrammingError`
-- [ ] Gate check passes: `python3 -m pytest -q`
-- [ ] Test count: suíte completa passa (nenhum teste silenciosamente removido)
+- [x] `_conexao` (context manager) abre conexão nova por operação no modo arquivo, aplica `row_factory` e `PRAGMA foreign_keys=ON`, faz commit no sucesso e fecha no `finally`
+- [x] Modo `:memory:`/`mode=memory` mantém conexão única compartilhada; `fechar()` fecha em memória e é no-op no modo arquivo
+- [x] Todos os métodos públicos usam `_conexao`; `salvar_turno` mantém SELECT MAX(ordem)+INSERT na mesma conexão; assinaturas inalteradas
+- [x] `tests/test_persistencia.py`: teste de migração em modo arquivo lê via conexão nova (sem `.conn`); novo teste de caracteres especiais (aspas/apóstrofos como dado literal, sem afetar outra conversa); novo teste de uso a partir de outra thread sem `ProgrammingError`
+- [x] Gate check passes: `python3 -m pytest -q`
+- [x] Test count: suíte completa passa (nenhum teste silenciosamente removido)
 
 **Tests**: integration
 **Gate**: build
