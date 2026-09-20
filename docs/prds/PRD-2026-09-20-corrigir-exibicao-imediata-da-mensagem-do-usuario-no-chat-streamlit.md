@@ -35,21 +35,21 @@ Renderizar a mensagem do usuário imediatamente após o envio, antes de a respos
 
 ## Requisitos funcionais
 
-1. Ao enviar (Enter ou botão de envio), a mensagem do usuário deve ser renderizada imediatamente na área do chat, antes de a resposta começar a ser gerada.
-2. A mensagem do usuário deve permanecer visível durante todo o processamento da resposta.
-3. A resposta do assistente deve ser exibida após a mensagem do usuário, sem sobrescrevê-la nem ocultá-la.
-4. Deve haver indicação de que a resposta está sendo processada enquanto a mensagem do usuário já está na tela.
-5. O comportamento deve se repetir de forma consistente em interações consecutivas, sem duplicar mensagens no histórico.
-6. Em caso de falha na geração, o erro sanitizado deve ser exibido sem remover a mensagem do usuário já mostrada.
+- **RF-01.** Ao enviar (Enter ou botão de envio), a mensagem do usuário deve ser renderizada imediatamente na área do chat, antes de a resposta começar a ser gerada.
+- **RF-02.** A mensagem do usuário deve permanecer visível durante todo o processamento da resposta.
+- **RF-03.** A resposta do assistente deve ser exibida após a mensagem do usuário, sem sobrescrevê-la nem ocultá-la.
+- **RF-04.** Deve haver indicação de que a resposta está sendo processada enquanto a mensagem do usuário já está na tela.
+- **RF-05.** O comportamento deve se repetir de forma consistente em interações consecutivas, sem duplicar mensagens no histórico.
+- **RF-06.** Em caso de falha na geração, o erro sanitizado deve ser exibido sem remover a mensagem do usuário já mostrada.
 
 ## Critérios de aceite
 
-- **CA1.** Enviar uma mensagem faz a fala do usuário aparecer imediatamente na área do chat.
-- **CA2.** A fala do usuário permanece visível enquanto a resposta é processada/gerada.
-- **CA3.** A resposta do assistente aparece após a mensagem do usuário, sem sobrescrever ou ocultar a mensagem anterior.
-- **CA4.** O comportamento é consistente em múltiplas interações consecutivas.
-- **CA5.** Nenhuma mensagem é duplicada no histórico nem gravada duas vezes na persistência.
-- **CA6.** Erros de geração continuam exibidos de forma sanitizada, mantendo a mensagem do usuário visível.
+- **CA-01.** Enviar uma mensagem faz a fala do usuário aparecer imediatamente na área do chat.
+- **CA-02.** A fala do usuário permanece visível enquanto a resposta é processada/gerada.
+- **CA-03.** A resposta do assistente aparece após a mensagem do usuário, sem sobrescrever ou ocultar a mensagem anterior.
+- **CA-04.** O comportamento é consistente em múltiplas interações consecutivas.
+- **CA-05.** Nenhuma mensagem é duplicada no histórico nem gravada duas vezes na persistência.
+- **CA-06.** Erros de geração continuam exibidos de forma sanitizada, mantendo a mensagem do usuário visível.
 
 ## Impactos/restrições técnicas relevantes
 
