@@ -198,6 +198,30 @@ def test_sidebar_retomar_thread_atualiza_sessao_e_historico():
     assert at.session_state["thread_id"] == 1
 
 
+def test_bolha_usuario_aparece_imediatamente_com_spinner_mesmo_sem_append():
+    """Discrimina o bug: a bolha do usuário deve ser pintada pela camada de
+    wiring antes da geração, independente do núcleo anexar ao histórico."""
+    from streamlit.testing.v1 import AppTest
+    import streamlit as st
+
+    chat = _chat_mock()
+
+    def _enviar_sem_append(c, texto):
+        return None, "Não foi possível obter resposta agora. Tente novamente em instantes."
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
+         patch("app_streamlit_core.enviar_mensagem_seguro", side_effect=_enviar_sem_append), \
+         patch("app_streamlit.st.spinner", wraps=st.spinner) as spinner_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.chat_input[0].set_value("Olá").run()
+
+    textos = [m.markdown[0].value for m in at.chat_message]
+    assert "Olá" in textos
+    spinner_mock.assert_called_once_with("Gerando resposta...")
+
+
 def test_sidebar_excluir_thread_chama_helper_do_nucleo():
     from streamlit.testing.v1 import AppTest
 

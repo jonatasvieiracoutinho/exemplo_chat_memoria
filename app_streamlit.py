@@ -77,7 +77,10 @@ def main():
 
     entrada = st.chat_input("Digite sua mensagem")
     if entrada:
-        resposta, erro = enviar_mensagem_seguro(chat, entrada)
+        with st.chat_message("user"):
+            st.write(entrada)
+        with st.spinner("Gerando resposta..."):
+            resposta, erro = enviar_mensagem_seguro(chat, entrada)
         st.session_state["thread_id"] = chat.thread_id
         if erro:
             st.error(erro)

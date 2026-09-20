@@ -67,11 +67,11 @@ T1 → T2 → T3
 
 **Done when**:
 
-- [ ] A fala do usuário é pintada pela camada de wiring antes da chamada de geração (independente do append do núcleo)
-- [ ] A chamada de geração ocorre dentro de um indicador de processamento (`st.spinner`)
-- [ ] Novo teste em `tests/test_app_streamlit_ui.py`: mock de `enviar_mensagem_seguro` que NÃO anexa ao histórico faz a bolha do usuário aparecer mesmo assim (discrimina o bug atual), e o indicador é acionado com mensagem amigável
-- [ ] Gate check passes: `python3 -m pytest tests/`
-- [ ] Test count: suíte atual (11 arquivos) continua passando e ao menos 1 teste novo passa (sem deleções silenciosas)
+- [x] A fala do usuário é pintada pela camada de wiring antes da chamada de geração (independente do append do núcleo)
+- [x] A chamada de geração ocorre dentro de um indicador de processamento (`st.spinner`)
+- [x] Novo teste em `tests/test_app_streamlit_ui.py`: mock de `enviar_mensagem_seguro` que NÃO anexa ao histórico faz a bolha do usuário aparecer mesmo assim (discrimina o bug atual), e o indicador é acionado com mensagem amigável
+- [x] Gate check passes: `python3 -m pytest tests/`
+- [x] Test count: suíte atual (11 arquivos) continua passando e ao menos 1 teste novo passa (sem deleções silenciosas)
 
 **Tests**: integration
 **Gate**: full
