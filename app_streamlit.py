@@ -85,7 +85,8 @@ def main():
         if erro:
             st.error(erro)
         elif resposta:
-            st.rerun()
+            with st.chat_message("assistant"):
+                st.write(resposta)
 
 
 main()

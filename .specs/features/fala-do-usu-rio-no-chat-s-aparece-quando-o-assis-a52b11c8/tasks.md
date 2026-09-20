@@ -93,11 +93,11 @@ T1 → T2 → T3
 
 **Done when**:
 
-- [ ] No sucesso, a resposta é renderizada depois da fala do usuário, na ordem correta, sem sobrescrevê-la
-- [ ] Não há `st.rerun()` no caminho de sucesso; o turno não é repintado nem reprocessado em execuções seguintes
-- [ ] Novo teste em `tests/test_app_streamlit_ui.py`: dois envios consecutivos produzem exatamente 4 bolhas ordenadas sem conteúdo duplicado e `enviar_mensagem_seguro` é chamado uma vez por envio
-- [ ] Gate check passes: `python3 -m pytest tests/`
-- [ ] Test count: suíte atual continua passando e ao menos 1 teste novo passa (sem deleções silenciosas)
+- [x] No sucesso, a resposta é renderizada depois da fala do usuário, na ordem correta, sem sobrescrevê-la
+- [x] Não há `st.rerun()` no caminho de sucesso; o turno não é repintado nem reprocessado em execuções seguintes
+- [x] Novo teste em `tests/test_app_streamlit_ui.py`: dois envios consecutivos produzem exatamente 4 bolhas ordenadas sem conteúdo duplicado e `enviar_mensagem_seguro` é chamado uma vez por envio
+- [x] Gate check passes: `python3 -m pytest tests/`
+- [x] Test count: suíte atual continua passando e ao menos 1 teste novo passa (sem deleções silenciosas)
 
 **Tests**: integration
 **Gate**: full

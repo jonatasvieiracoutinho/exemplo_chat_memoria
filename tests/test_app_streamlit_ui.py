@@ -222,6 +222,39 @@ def test_bolha_usuario_aparece_imediatamente_com_spinner_mesmo_sem_append():
     spinner_mock.assert_called_once_with("Gerando resposta...")
 
 
+def test_dois_envios_consecutivos_nao_duplicam_bolhas():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock()
+    enviar_mock = MagicMock()
+
+    def _enviar(c, texto):
+        c.historico.append({"role": "user", "content": texto})
+        c.historico.append({"role": "assistant", "content": f"Resposta para: {texto}"})
+        return f"Resposta para: {texto}", None
+
+    enviar_mock.side_effect = _enviar
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
+         patch("app_streamlit_core.enviar_mensagem_seguro", enviar_mock), \
+         patch("app_streamlit.st.rerun") as rerun_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.chat_input[0].set_value("Primeira").run()
+        at.chat_input[0].set_value("Segunda").run()
+
+    textos = [m.markdown[0].value for m in at.chat_message]
+    assert textos == [
+        "Primeira",
+        "Resposta para: Primeira",
+        "Segunda",
+        "Resposta para: Segunda",
+    ]
+    assert enviar_mock.call_count == 2
+    rerun_mock.assert_not_called()
+
+
 def test_sidebar_excluir_thread_chama_helper_do_nucleo():
     from streamlit.testing.v1 import AppTest
 
