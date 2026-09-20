@@ -133,10 +133,10 @@ T2 → T4
 
 **Done when**:
 
-- [ ] Cenário: conversa salva antes do rerun é retomada com histórico na ordem original
-- [ ] Cenário: conversa excluída deixa de aparecer na lista e não pode ser retomada após nova renderização
-- [ ] Gate check passes: `python3 -m pytest tests/test_persistencia.py tests/test_streamlit_rerun_persistencia.py -q`
-- [ ] Test count: novos testes de integração passam (nenhum teste silenciosamente removido)
+- [x] Cenário: conversa salva antes do rerun é retomada com histórico na ordem original
+- [x] Cenário: conversa excluída deixa de aparecer na lista e não pode ser retomada após nova renderização
+- [x] Gate check passes: `python3 -m pytest tests/test_persistencia.py tests/test_streamlit_rerun_persistencia.py -q`
+- [x] Test count: novos testes de integração passam (nenhum teste silenciosamente removido)
 
 **Tests**: integration
 **Gate**: full

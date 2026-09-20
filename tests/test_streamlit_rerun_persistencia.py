@@ -87,6 +87,22 @@ def renderizar_listar(sessao):
     return listar_threads(sessao["gerenciador"])
 
 
+def renderizar_retomar(sessao, thread_id):
+    """Reproduz o clique em "Retomar thread" após uma nova renderização."""
+    from app_streamlit_core import retomar_thread
+
+    sessao["chat"] = retomar_thread(sessao["gerenciador"], thread_id)
+    sessao["thread_id"] = sessao["chat"].thread_id
+    return sessao
+
+
+def renderizar_excluir(sessao, thread_id):
+    """Reproduz o clique em "Excluir thread" após uma nova renderização."""
+    from app_streamlit_core import excluir_thread
+
+    return excluir_thread(sessao["gerenciador"], thread_id)
+
+
 @pytest.fixture
 def openai_mockado():
     with patch.dict("os.environ", ENV_VARS, clear=False):
@@ -138,3 +154,51 @@ def test_rerun_renderizacao_inicial_e_primeiro_envio_sem_erro_de_conexao(tmp_pat
             assert turnos[0]["total_tokens"] == 40
         finally:
             gerenciador_verificacao.fechar()
+
+
+# ---------- T3: retomar e excluir conversa após rerun ----------
+
+def test_rerun_retomar_thread_historico_na_ordem_original(tmp_path, openai_mockado):
+    caminho_db = str(tmp_path / "retomar.db")
+    openai_mockado.chat.completions.create.return_value = _resposta_openai(
+        "Resposta 1", 10, 10, 20
+    )
+
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "true"}):
+        sessao = {}
+        rodar_em_nova_execucao(renderizar_inicial, sessao, caminho_db)
+        rodar_em_nova_execucao(renderizar_envio, sessao, "Primeira mensagem")
+        thread_id = sessao["thread_id"]
+
+        # nova renderização: a pessoa seleciona na lista a conversa salva
+        # antes do rerun
+        rodar_em_nova_execucao(renderizar_retomar, sessao, thread_id)
+
+        assert sessao["chat"].thread_id == thread_id
+        assert sessao["chat"].historico == [
+            {"role": "user", "content": "Primeira mensagem"},
+            {"role": "assistant", "content": "Resposta 1"},
+        ]
+
+
+def test_rerun_excluir_thread_remove_da_lista_e_impede_retomada(tmp_path, openai_mockado):
+    caminho_db = str(tmp_path / "excluir.db")
+    openai_mockado.chat.completions.create.return_value = _resposta_openai(
+        "Resposta 2", 5, 5, 10
+    )
+
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "true"}):
+        sessao = {}
+        rodar_em_nova_execucao(renderizar_inicial, sessao, caminho_db)
+        rodar_em_nova_execucao(renderizar_envio, sessao, "Mensagem a excluir")
+        thread_id = sessao["thread_id"]
+
+        excluida = rodar_em_nova_execucao(renderizar_excluir, sessao, thread_id)
+        assert excluida is True
+
+        # nova renderização após a exclusão
+        threads_apos_exclusao = rodar_em_nova_execucao(renderizar_listar, sessao)
+        assert threads_apos_exclusao == []
+
+        rodar_em_nova_execucao(renderizar_retomar, sessao, thread_id)
+        assert sessao["chat"].historico == []

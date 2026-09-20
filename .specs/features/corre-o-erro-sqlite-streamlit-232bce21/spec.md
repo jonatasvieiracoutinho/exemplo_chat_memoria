@@ -98,8 +98,8 @@ Cada requisito recebe um ID rastreável. A coluna **Origem** liga ao ID congelad
 | SQLR-02 | RF-02, CA-01 | P1 | Tasks | Implementing |
 | SQLR-03 | RF-03, CA-02 | P1 | Tasks | Implementing |
 | SQLR-04 | RF-04, CA-03 | P1 | Tasks | Implementing |
-| SQLR-05 | RF-05, CA-04 | P2 | Tasks | In Tasks |
-| SQLR-06 | RF-06, CA-05 | P2 | Tasks | In Tasks |
+| SQLR-05 | RF-05, CA-04 | P2 | Tasks | Implementing |
+| SQLR-06 | RF-06, CA-05 | P2 | Tasks | Implementing |
 | SQLR-07 | RF-07, CA-06 | P1 | Tasks | Implementing |
 | SQLR-08 | RF-08, CA-07 | P2 | Tasks | In Tasks |
 | SQLR-09 | RF-09, CA-08 | P1 | Tasks | Implementing |
