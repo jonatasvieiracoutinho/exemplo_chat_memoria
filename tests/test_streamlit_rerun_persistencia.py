@@ -202,3 +202,23 @@ def test_rerun_excluir_thread_remove_da_lista_e_impede_retomada(tmp_path, openai
 
         rodar_em_nova_execucao(renderizar_retomar, sessao, thread_id)
         assert sessao["chat"].historico == []
+
+
+# ---------- T4: persistência desativada não cria armazenamento ----------
+
+def test_rerun_persistencia_desativada_nao_cria_nem_acessa_arquivo(tmp_path, openai_mockado):
+    caminho_db = str(tmp_path / "desativada.db")
+    openai_mockado.chat.completions.create.return_value = _resposta_openai(
+        "Resposta sem persistência", 1, 1, 2
+    )
+
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "false"}):
+        sessao = {}
+        rodar_em_nova_execucao(renderizar_inicial, sessao, caminho_db)
+        resposta, erro = rodar_em_nova_execucao(renderizar_envio, sessao, "Mensagem sem persistir")
+
+    assert erro is None
+    assert resposta == "Resposta sem persistência"
+    assert sessao["gerenciador"] is None
+    assert sessao["chat"].gerenciador is None
+    assert not os.path.exists(caminho_db)

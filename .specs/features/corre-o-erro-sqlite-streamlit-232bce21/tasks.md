@@ -158,10 +158,10 @@ T2 → T4
 
 **Done when**:
 
-- [ ] Cenário: com `PERSISTENCIA_SQLITE` desativada, renderização inicial e envio não criam gerenciador nem arquivo de banco em diretório temporário isolado
-- [ ] Asserção: nenhum arquivo de armazenamento local é criado ou acessado no fluxo
-- [ ] Gate check passes: `python3 -m pytest -q`
-- [ ] Test count: suíte completa passa (nenhum teste silenciosamente removido)
+- [x] Cenário: com `PERSISTENCIA_SQLITE` desativada, renderização inicial e envio não criam gerenciador nem arquivo de banco em diretório temporário isolado
+- [x] Asserção: nenhum arquivo de armazenamento local é criado ou acessado no fluxo
+- [x] Gate check passes: `python3 -m pytest -q`
+- [x] Test count: suíte completa passa (nenhum teste silenciosamente removido)
 
 **Tests**: integration
 **Gate**: build
