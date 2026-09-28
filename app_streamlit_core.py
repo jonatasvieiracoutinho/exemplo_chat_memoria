@@ -18,12 +18,21 @@ def persistencia_ativa() -> bool:
     return os.getenv("PERSISTENCIA_SQLITE", "false").lower() == "true"
 
 
-def construir_sessao_chat(gerenciador=None, thread_id=None) -> ChatComMemoria:
+def construir_sessao_chat(
+    gerenciador=None, thread_id=None, api_key=None, modelo=None, base_url=None
+) -> ChatComMemoria:
     """Instancia ChatComMemoria, repassando gerenciador/thread_id somente
-    quando a persistência está ativa."""
+    quando a persistência está ativa; api_key/modelo/base_url são sempre
+    repassados ao construtor, que decide a precedência sobre o ambiente."""
     if persistencia_ativa():
-        return ChatComMemoria(gerenciador=gerenciador, thread_id=thread_id)
-    return ChatComMemoria()
+        return ChatComMemoria(
+            gerenciador=gerenciador,
+            thread_id=thread_id,
+            api_key=api_key,
+            modelo=modelo,
+            base_url=base_url,
+        )
+    return ChatComMemoria(api_key=api_key, modelo=modelo, base_url=base_url)
 
 
 def mascarar_chave(texto: str, chaves) -> str:
@@ -166,10 +175,13 @@ def listar_threads(gerenciador) -> list:
     return gerenciador.listar_threads()
 
 
-def retomar_thread(gerenciador, thread_id) -> ChatComMemoria:
+def retomar_thread(gerenciador, thread_id, api_key=None, modelo=None, base_url=None) -> ChatComMemoria:
     """Reconstrói `ChatComMemoria` com o `thread_id` selecionado, carregando
-    seu histórico a partir da persistência."""
-    return construir_sessao_chat(gerenciador=gerenciador, thread_id=thread_id)
+    seu histórico a partir da persistência, usando o Perfil informado no
+    momento da chamada (não o que gerou a thread)."""
+    return construir_sessao_chat(
+        gerenciador=gerenciador, thread_id=thread_id, api_key=api_key, modelo=modelo, base_url=base_url
+    )
 
 
 def excluir_thread(gerenciador, thread_id) -> bool:

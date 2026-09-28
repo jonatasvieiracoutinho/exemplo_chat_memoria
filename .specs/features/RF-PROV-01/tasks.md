@@ -434,13 +434,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] Os três valores chegam a `ChatComMemoria` quando informados
-- [ ] Sem persistência, `gerenciador` e `thread_id` continuam ignorados
-- [ ] Chamada sem os três valores mantém o comportamento atual
-- [ ] `retomar_thread()` continua funcionando e usa o Perfil informado no momento
-- [ ] Testes novos conferem os argumentos recebidos pelo construtor mockado
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
-- [ ] Test count: ao menos 3 testes novos passam
+- [x] Os três valores chegam a `ChatComMemoria` quando informados
+- [x] Sem persistência, `gerenciador` e `thread_id` continuam ignorados
+- [x] Chamada sem os três valores mantém o comportamento atual
+- [x] `retomar_thread()` continua funcionando e usa o Perfil informado no momento
+- [x] Testes novos conferem os argumentos recebidos pelo construtor mockado
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
+- [x] Test count: ao menos 3 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

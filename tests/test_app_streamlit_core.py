@@ -64,6 +64,66 @@ def test_construir_sessao_chat_com_persistencia_usa_gerenciador_e_thread_id(open
         assert chat.thread_id == 42
 
 
+def test_construir_sessao_chat_repassa_perfil_ao_construtor(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "false"}):
+        import app_streamlit_core
+        with patch.object(app_streamlit_core, "ChatComMemoria") as mock_chat:
+            app_streamlit_core.construir_sessao_chat(
+                api_key="gsk_perfil", modelo="llama3", base_url="https://api.groq.com/openai/v1"
+            )
+            mock_chat.assert_called_once_with(
+                api_key="gsk_perfil", modelo="llama3", base_url="https://api.groq.com/openai/v1"
+            )
+
+
+def test_construir_sessao_chat_com_persistencia_repassa_perfil_e_gerenciador(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "true"}):
+        import app_streamlit_core
+        with patch.object(app_streamlit_core, "ChatComMemoria") as mock_chat:
+            gerenciador = MagicMock()
+            app_streamlit_core.construir_sessao_chat(
+                gerenciador=gerenciador,
+                thread_id=42,
+                api_key="gsk_perfil",
+                modelo="llama3",
+                base_url="https://api.groq.com/openai/v1",
+            )
+            mock_chat.assert_called_once_with(
+                gerenciador=gerenciador,
+                thread_id=42,
+                api_key="gsk_perfil",
+                modelo="llama3",
+                base_url="https://api.groq.com/openai/v1",
+            )
+
+
+def test_construir_sessao_chat_sem_perfil_mantem_comportamento_atual(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "false"}):
+        from app_streamlit_core import construir_sessao_chat
+        chat = construir_sessao_chat()
+        assert chat.api_key == "sk-test-key"
+        assert chat.modelo == "gpt-4o-mini"
+
+
+# ---------- retomar_thread ----------
+
+def test_retomar_thread_repassa_perfil_informado_no_momento(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "true"}):
+        import app_streamlit_core
+        with patch.object(app_streamlit_core, "ChatComMemoria") as mock_chat:
+            gerenciador = MagicMock()
+            app_streamlit_core.retomar_thread(
+                gerenciador, 42, api_key="gsk_perfil", modelo="llama3", base_url="https://api.groq.com/openai/v1"
+            )
+            mock_chat.assert_called_once_with(
+                gerenciador=gerenciador,
+                thread_id=42,
+                api_key="gsk_perfil",
+                modelo="llama3",
+                base_url="https://api.groq.com/openai/v1",
+            )
+
+
 # ---------- mascarar_chave ----------
 
 def test_mascarar_chave_doze_ou_mais_caracteres_vira_parcial():
