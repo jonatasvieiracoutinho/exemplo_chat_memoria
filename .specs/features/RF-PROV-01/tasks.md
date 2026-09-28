@@ -526,13 +526,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] Reselecionar o Perfil ativo deixa o objeto de sessão idêntico e não chama o construtor nenhuma vez
-- [ ] Perfil indisponível exibe o motivo nomeando a variável faltante e não troca a sessão
-- [ ] Recusa da validação de `ChatComMemoria` aparece na tela e a sessão anterior é preservada
-- [ ] A conversa em andamento continua visível nos dois casos de recusa
-- [ ] Testes novos assertam identidade do objeto de sessão e contagem de chamadas do construtor, não só a presença da mensagem
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
+- [x] Reselecionar o Perfil ativo deixa o objeto de sessão idêntico e não chama o construtor nenhuma vez
+- [x] Perfil indisponível exibe o motivo nomeando a variável faltante e não troca a sessão
+- [x] Recusa da validação de `ChatComMemoria` aparece na tela e a sessão anterior é preservada
+- [x] A conversa em andamento continua visível nos dois casos de recusa
+- [x] Testes novos assertam identidade do objeto de sessão e contagem de chamadas do construtor, não só a presença da mensagem
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
 
 **Tests**: integration
 **Gate**: full

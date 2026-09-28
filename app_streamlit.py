@@ -85,7 +85,7 @@ def main():
         nomes = [perfil["nome"] for perfil in perfis]
         indice_atual = nomes.index(perfil_ativo) if perfil_ativo in nomes else 0
         nome_escolhido = st.selectbox("Trocar Perfil de provedor", options=nomes, index=indice_atual)
-        if st.button("Confirmar Perfil"):
+        if st.button("Confirmar Perfil") and nome_escolhido != perfil_ativo:
             perfil_escolhido = next(perfil for perfil in perfis if perfil["nome"] == nome_escolhido)
             chat_novo, motivo = trocar_perfil(perfil_escolhido, gerenciador=st.session_state["gerenciador"])
             if chat_novo is not None:

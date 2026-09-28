@@ -372,6 +372,101 @@ def test_provedor_resumo_mostra_perfil_ativo_sem_a_chave():
     assert "gsk_super_secreta_123" not in textos
 
 
+def test_provedor_reselecionar_perfil_ativo_preserva_sessao_sem_chamar_construtor_de_novo():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock_com_helpers()
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat) as construir_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.button[-1].click().run()
+
+    assert at.session_state["chat"] is chat
+    assert len(at.chat_message) == 2
+    construir_mock.assert_called_once()
+
+
+def test_provedor_reselecionar_perfil_nao_padrao_ja_ativo_nao_reconstroi():
+    from streamlit.testing.v1 import AppTest
+
+    chat_inicial = _chat_mock_com_helpers()
+    chat_groq = _chat_mock_com_helpers()
+    env = {
+        "PERFIS": "Groq",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+    }
+    with patch.dict("os.environ", env), \
+         patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch(
+             "app_streamlit_core.construir_sessao_chat",
+             side_effect=[chat_inicial, chat_groq],
+         ) as construir_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.selectbox[-1].set_value("Groq").run()
+        at.sidebar.button[-1].click().run()
+        at.sidebar.button[-1].click().run()
+
+    assert at.session_state["chat"] is chat_groq
+    assert at.session_state["perfil_ativo"] == "Groq"
+    assert construir_mock.call_count == 2
+
+
+def test_provedor_perfil_indisponivel_exibe_motivo_e_preserva_sessao():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock_com_helpers()
+    env = {
+        "PERFIS": "Ollama local",
+        "PERFIL_OLLAMA_LOCAL_BASE_URL": "http://localhost:11434/v1",
+        "PERFIL_OLLAMA_LOCAL_API_KEY": "ollama",
+    }
+    with patch.dict("os.environ", env), \
+         patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat) as construir_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.selectbox[-1].set_value("Ollama local").run()
+        at.sidebar.button[-1].click().run()
+
+    assert at.session_state["chat"] is chat
+    assert len(at.error) == 1
+    assert "PERFIL_OLLAMA_LOCAL_MODEL" in at.error[0].value
+    assert len(at.chat_message) == 2
+    construir_mock.assert_called_once()
+
+
+def test_provedor_recusa_do_construtor_preserva_sessao_anterior():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock_com_helpers()
+    env = {
+        "PERFIS": "Groq",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+    }
+    with patch.dict("os.environ", env), \
+         patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch(
+             "app_streamlit_core.construir_sessao_chat",
+             side_effect=[chat, ValueError("modelo inválido")],
+         ):
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.selectbox[-1].set_value("Groq").run()
+        at.sidebar.button[-1].click().run()
+
+    assert at.session_state["chat"] is chat
+    assert len(at.error) == 1
+    assert "modelo inválido" in at.error[0].value
+    assert len(at.chat_message) == 2
+
+
 def test_sidebar_excluir_thread_chama_helper_do_nucleo():
     from streamlit.testing.v1 import AppTest
 
