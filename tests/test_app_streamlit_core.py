@@ -249,3 +249,54 @@ def test_exportar_conversa_texto_usa_arquivo_temporario_e_devolve_conteudo():
     assert nome.endswith(".txt")
     assert caminho_usado["valor"].startswith(tempfile.gettempdir())
     assert not os.path.exists(caminho_usado["valor"])
+
+
+# ---------- carregar_perfis ----------
+
+def test_carregar_perfis_primeira_entrada_sempre_padrao_env():
+    with patch.dict("os.environ", ENV_VARS, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[0]["nome"] == "Padrão (.env)"
+        assert perfis[0]["disponivel"] is True
+        assert perfis[0]["base_url"] is None
+        assert perfis[0]["api_key"] == "sk-test-key"
+        assert perfis[0]["modelo"] == "gpt-4o-mini"
+
+
+def test_carregar_perfis_inclui_perfil_com_bloco_completo_na_ordem_declarada():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq,Ollama local",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+        "PERFIL_OLLAMA_LOCAL_BASE_URL": "http://localhost:11434/v1",
+        "PERFIL_OLLAMA_LOCAL_API_KEY": "ollama",
+        "PERFIL_OLLAMA_LOCAL_MODEL": "llama3",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        nomes = [perfil["nome"] for perfil in perfis]
+        assert nomes == ["Padrão (.env)", "Groq", "Ollama local"]
+        groq = perfis[1]
+        assert groq["disponivel"] is True
+        assert groq["base_url"] == "https://api.groq.com/openai/v1"
+        assert groq["api_key"] == "gsk_exemplo"
+        assert groq["modelo"] == "llama-3.3-70b-versatile"
+
+
+def test_carregar_perfis_normaliza_nome_com_espaco_para_prefixo():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Ollama local",
+        "PERFIL_OLLAMA_LOCAL_BASE_URL": "http://localhost:11434/v1",
+        "PERFIL_OLLAMA_LOCAL_API_KEY": "ollama",
+        "PERFIL_OLLAMA_LOCAL_MODEL": "llama3",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[1]["nome"] == "Ollama local"
+        assert perfis[1]["base_url"] == "http://localhost:11434/v1"

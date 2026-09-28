@@ -253,13 +253,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] A primeira entrada é sempre `Padrão (.env)`, com `disponivel` verdadeiro e `base_url` igual a `None` quando `OPENAI_BASE_URL` não está definida
-- [ ] Cada Perfil é um `dict` com `nome`, `base_url`, `api_key`, `modelo`, `disponivel`, `motivo_indisponivel`
-- [ ] O nome vira prefixo com maiúsculas e todo caractere não alfanumérico trocado por `_` (`Ollama local` → `PERFIL_OLLAMA_LOCAL_`)
-- [ ] A ordem da lista segue a ordem dos nomes em `PERFIS`
-- [ ] Testes novos com `patch.dict("os.environ", …)` cobrem bloco completo, ordem e normalização do nome
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
-- [ ] Test count: ao menos 3 testes novos passam
+- [x] A primeira entrada é sempre `Padrão (.env)`, com `disponivel` verdadeiro e `base_url` igual a `None` quando `OPENAI_BASE_URL` não está definida
+- [x] Cada Perfil é um `dict` com `nome`, `base_url`, `api_key`, `modelo`, `disponivel`, `motivo_indisponivel`
+- [x] O nome vira prefixo com maiúsculas e todo caractere não alfanumérico trocado por `_` (`Ollama local` → `PERFIL_OLLAMA_LOCAL_`)
+- [x] A ordem da lista segue a ordem dos nomes em `PERFIS`
+- [x] Testes novos com `patch.dict("os.environ", …)` cobrem bloco completo, ordem e normalização do nome
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
+- [x] Test count: ao menos 3 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

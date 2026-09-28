@@ -7,6 +7,7 @@ negócio. `app_streamlit.py` faz apenas o wiring dos widgets.
 """
 
 import os
+import re
 import tempfile
 
 from chat_openai_memoria import ChatComMemoria
@@ -39,6 +40,44 @@ def mascarar_chave(texto: str, chaves) -> str:
             mascara = "***"
         resultado = resultado.replace(chave, mascara)
     return resultado
+
+
+def _prefixo_perfil(nome: str) -> str:
+    """Normaliza o nome do Perfil no prefixo de variável de ambiente:
+    maiúsculas, todo caractere não alfanumérico trocado por `_`
+    (`Ollama local` -> `PERFIL_OLLAMA_LOCAL_`)."""
+    normalizado = re.sub(r"[^A-Za-z0-9]", "_", nome).upper()
+    return f"PERFIL_{normalizado}_"
+
+
+def carregar_perfis() -> list:
+    """Lê `os.environ` e devolve a lista de Perfis de provedor: sempre
+    começando por `Padrão (.env)` (montado das variáveis `OPENAI_*`),
+    seguida de cada nome declarado em `PERFIS`, na ordem declarada."""
+    perfis = [
+        {
+            "nome": "Padrão (.env)",
+            "base_url": os.getenv("OPENAI_BASE_URL"),
+            "api_key": os.getenv("OPENAI_API_KEY"),
+            "modelo": os.getenv("OPENAI_MODEL"),
+            "disponivel": True,
+            "motivo_indisponivel": None,
+        }
+    ]
+    nomes = [nome.strip() for nome in os.getenv("PERFIS", "").split(",") if nome.strip()]
+    for nome in nomes:
+        prefixo = _prefixo_perfil(nome)
+        perfis.append(
+            {
+                "nome": nome,
+                "base_url": os.getenv(f"{prefixo}BASE_URL"),
+                "api_key": os.getenv(f"{prefixo}API_KEY"),
+                "modelo": os.getenv(f"{prefixo}MODEL"),
+                "disponivel": True,
+                "motivo_indisponivel": None,
+            }
+        )
+    return perfis
 
 
 def sanitizar_erro(exc: Exception, chat=None) -> str:
