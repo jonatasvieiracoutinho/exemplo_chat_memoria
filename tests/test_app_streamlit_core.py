@@ -336,3 +336,52 @@ def test_carregar_perfis_variavel_so_com_espacos_conta_como_ausente():
         perfis = carregar_perfis()
         assert perfis[1]["disponivel"] is False
         assert "PERFIL_GROQ_MODEL" in perfis[1]["motivo_indisponivel"]
+
+
+# ---------- carregar_perfis: esquema, deduplicação e PERFIS ausente ----------
+
+def test_carregar_perfis_url_sem_esquema_fica_indisponivel_com_url_no_motivo():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq",
+        "PERFIL_GROQ_BASE_URL": "api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[1]["disponivel"] is False
+        assert "api.groq.com/openai/v1" in perfis[1]["motivo_indisponivel"]
+        assert "Groq" in perfis[1]["motivo_indisponivel"]
+
+
+def test_carregar_perfis_nome_repetido_entra_uma_vez():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq,Groq",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        nomes = [perfil["nome"] for perfil in perfis]
+        assert nomes.count("Groq") == 1
+
+
+def test_carregar_perfis_sem_perfis_declarados_devolve_so_padrao():
+    with patch.dict("os.environ", ENV_VARS, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert len(perfis) == 1
+        assert perfis[0]["nome"] == "Padrão (.env)"
+
+
+def test_carregar_perfis_perfis_vazia_devolve_so_padrao():
+    with patch.dict("os.environ", {**ENV_VARS, "PERFIS": ""}, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert len(perfis) == 1
+        assert perfis[0]["nome"] == "Padrão (.env)"

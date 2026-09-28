@@ -313,12 +313,12 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] `api.groq.com/openai/v1` produz `disponivel: False` com o nome do Perfil e a URL recebida no motivo
-- [ ] `PERFIS=Groq,Groq` produz exatamente uma entrada `Groq`
-- [ ] `PERFIS` ausente ou string vazia produz lista de comprimento 1 com só `Padrão (.env)`
-- [ ] Testes novos olham `disponivel`, não apenas o comprimento da lista, e discriminam a troca da checagem de esquema por `if base_url:`
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
-- [ ] Test count: ao menos 3 testes novos passam
+- [x] `api.groq.com/openai/v1` produz `disponivel: False` com o nome do Perfil e a URL recebida no motivo
+- [x] `PERFIS=Groq,Groq` produz exatamente uma entrada `Groq`
+- [x] `PERFIS` ausente ou string vazia produz lista de comprimento 1 com só `Padrão (.env)`
+- [x] Testes novos olham `disponivel`, não apenas o comprimento da lista, e discriminam a troca da checagem de esquema por `if base_url:`
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
+- [x] Test count: ao menos 3 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

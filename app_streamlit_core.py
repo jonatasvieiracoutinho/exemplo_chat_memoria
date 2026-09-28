@@ -65,7 +65,11 @@ def carregar_perfis() -> list:
         }
     ]
     nomes = [nome.strip() for nome in os.getenv("PERFIS", "").split(",") if nome.strip()]
+    vistos = set()
     for nome in nomes:
+        if nome in vistos:
+            continue
+        vistos.add(nome)
         prefixo = _prefixo_perfil(nome)
         base_url = os.getenv(f"{prefixo}BASE_URL")
         api_key = os.getenv(f"{prefixo}API_KEY")
@@ -87,6 +91,20 @@ def carregar_perfis() -> list:
                     "modelo": None,
                     "disponivel": False,
                     "motivo_indisponivel": f"Perfil {nome}: variável {variavel_ausente} ausente ou vazia",
+                }
+            )
+            continue
+        if not (base_url.startswith("http://") or base_url.startswith("https://")):
+            perfis.append(
+                {
+                    "nome": nome,
+                    "base_url": None,
+                    "api_key": None,
+                    "modelo": None,
+                    "disponivel": False,
+                    "motivo_indisponivel": (
+                        f"Perfil {nome}: base URL '{base_url}' não começa com http:// nem https://"
+                    ),
                 }
             )
             continue
