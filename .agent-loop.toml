@@ -1,0 +1,68 @@
+# Configuração do code-agent-loop (v0.2.1) — projeto EM EVOLUÇÃO.
+#
+# Sem seção [fundacao]: o repositório já tem código em produção e 112 testes reais, então o
+# gate do estágio `verificar` tem suíte contra a qual medir e mutante a matar. Lint e tipos
+# (ruff, mypy) NÃO existem hoje — o gate roda só pytest. Acrescentá-los é um requisito comum
+# da fila, quando fizer sentido; não é pré-requisito para rodar o laço.
+
+branch_integracao = "release"
+# branch_proibida = "main" é o default e fica assim, por desenho.
+
+# Molde do arquivo de requisito de cada item. FAIL-CLOSED: o arquivo resolvido TEM de existir,
+# senão o item morre em ERRO_INFRA antes do primeiro token. Os arquivos são produzidos pela
+# skill `preparar-requisitos`, fora do laço.
+padrao_requisito = "docs/requisitos/{item}.md"
+
+# Molde do plano. PRÉ-REQUISITO do modo por fase: é onde o laço conta os marcadores
+# `<!-- FASE: N -->` para decidir quantas sessões de implementação abrir. O arquivo é
+# gravado pela skill do ciclo, junto do spec.md e do design.md da feature.
+padrao_plano = ".specs/features/{item}/tasks.md"
+
+# A fila. VAZIA de propósito: ela vem da skill `preparar-requisitos`, que grava a ordem
+# topológica em docs/requisitos/FILA.md. Copie a linha `fila:` de lá para cá.
+itens = []
+
+# --- os três estágios do ciclo -----------------------------------------------------------
+#
+# `modelo` e `effort` vêm DECLARADOS: é o dimensionamento com que o alvo de custo por
+# requisito foi calculado. Se o custo subir, a alavanca é subir SÓ o `verificar` para Opus.
+
+[[estagios]]
+nome = "planejar"
+prompt = "01-planejar.md"
+modelo = "claude-sonnet-5"
+effort = "medium"
+
+[[estagios]]
+nome = "implementar"
+prompt = "03-implementar.md"
+modelo = "claude-sonnet-5"
+effort = "medium"
+# Pós-condição verificável sem julgamento: a branch do item TEM de ganhar commit.
+# Sem commit ⇒ INCOMPLETO_POR_TETO, nunca SUCESSO.
+exige_commit = true
+
+[[estagios]]
+nome = "verificar"
+prompt = "04-verificar.md"
+modelo = "claude-sonnet-5"
+effort = "high"
+e_gate = true
+# O default do laço é 10, e dez rodadas de gate foi o padrão de custo que este pipeline
+# substituiu. Fica em 3.
+max_rodadas_gate = 3
+
+# --- tetos: DESLIGADOS na primeira execução ----------------------------------------------
+#
+# Um teto que aborta no meio joga fora trabalho já pago. O custo é SEMPRE registrado no
+# ledger, mesmo com os tetos desligados — ligar depois de medir o custo real de um item é a
+# ordem certa.
+#
+# ⚠️ Os tetos de ESTÁGIO valem por INVOCAÇÃO, não por estágio: `usd_por_estagio` multiplica
+# pelo número de fases (na implementação) ou de rodadas (no gate).
+#
+# [tetos]
+# usd_por_estagio = 15.0
+# usd_por_item = 45.0
+# timeout_estagio_s = 3600
+# max_itens = 1

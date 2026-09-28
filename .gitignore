@@ -28,3 +28,8 @@ __pycache__/
 # Banco de dados SQLite local (gerado em tempo de execução)
 chat_memoria.db
 
+# Árvore de log do code-agent-loop (gerada em tempo de execução)
+# ⚠️ Só .agent-loop/ é ignorado. O .agent-loop.toml e o .specs/ são VERSIONADOS: o canal
+# entre as rodadas do gate é um arquivo commitado, e rodada nova é sessão nova.
+.agent-loop/
+
