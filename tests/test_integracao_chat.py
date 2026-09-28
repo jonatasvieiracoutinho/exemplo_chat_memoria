@@ -371,3 +371,37 @@ def test_parametros_novos_nao_escrevem_em_os_environ():
         assert os.environ["OPENAI_API_KEY"] == "sk-test-key"
         assert os.environ["OPENAI_MODEL"] == "gpt-4o-mini"
         assert "OPENAI_BASE_URL" not in os.environ
+
+
+# ---------- recusa de valor inválido por parâmetro, sem instruir editar o .env ----------
+
+def test_api_key_por_parametro_vazio_recusa_citando_o_parametro():
+    with patch.dict("os.environ", ENV_VARS):
+        with pytest.raises(ValueError) as exc:
+            _construir_chat(api_key="   ")
+    assert "api_key" in str(exc.value)
+    assert ".env" not in str(exc.value)
+
+
+def test_modelo_por_parametro_vazio_recusa_citando_o_parametro():
+    with patch.dict("os.environ", ENV_VARS):
+        with pytest.raises(ValueError) as exc:
+            _construir_chat(modelo="")
+    assert "modelo" in str(exc.value)
+    assert ".env" not in str(exc.value)
+
+
+def test_base_url_por_parametro_sem_esquema_recusa_citando_o_valor_recebido():
+    with patch.dict("os.environ", ENV_VARS):
+        with pytest.raises(ValueError) as exc:
+            _construir_chat(base_url="api.groq.com/openai/v1")
+    assert "api.groq.com/openai/v1" in str(exc.value)
+    assert ".env" not in str(exc.value)
+
+
+def test_valor_invalido_vindo_do_ambiente_continua_citando_a_variavel_do_env():
+    env_com_url_invalida = {**ENV_VARS, "OPENAI_BASE_URL": "api.groq.com/openai/v1"}
+    with patch.dict("os.environ", env_com_url_invalida):
+        with pytest.raises(ValueError) as exc:
+            _construir_chat()
+    assert "OPENAI_BASE_URL" in str(exc.value)

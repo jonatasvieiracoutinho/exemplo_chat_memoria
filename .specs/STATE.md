@@ -58,5 +58,13 @@
 - **Date**: 2026-09-28
 - **Status**: active
 
+### AD-008
+- **Decision**: Em T11 (`tasks.md`), o critério "valor inválido vindo do ambiente continua produzindo a mensagem que cita o `.env`, como hoje" não se aplica a `OPENAI_BASE_URL`. O teste-guarda usa a presença de `OPENAI_BASE_URL` na mensagem, não a string `.env`.
+- **Reason**: Lido em `chat_openai_memoria.py` antes da mudança (T10): a mensagem de `OPENAI_BASE_URL` inválida já era `"OPENAI_BASE_URL inválida: '...'. A URL deve começar com http:// ou https://"`, sem a string `.env`, diferente de `OPENAI_API_KEY`/`OPENAI_MODEL` ausentes, que citam `.env` explicitamente ("Crie o arquivo .env com..."). O `tasks.md` generalizou o padrão dos dois primeiros para o terceiro sem conferir o texto atual.
+- **Trade-off**: Nenhum comportamento mudou; é só o teste-guarda de T11 que usa o nome da variável de ambiente como discriminador em vez da string `.env`, porque essa string nunca existiu nesse caminho.
+- **Scope**: `.specs/features/RF-PROV-01/tasks.md` T11, `tests/test_integracao_chat.py`.
+- **Date**: 2026-09-28
+- **Status**: active
+
 ## Handoff
 

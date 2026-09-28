@@ -404,13 +404,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] `ChatComMemoria(api_key="   ")` levanta `ValueError` citando `api_key`, sem a string `.env`
-- [ ] `ChatComMemoria(modelo="")` idem, citando `modelo`
-- [ ] `ChatComMemoria(base_url="api.groq.com/openai/v1")` recusa citando o valor recebido, sem a string `.env`
-- [ ] Valor inválido vindo do **ambiente** continua produzindo a mensagem que cita o `.env`, como hoje
-- [ ] Testes novos discriminam o reaproveitamento da mensagem do ambiente e a checagem `is None` no lugar de valor em branco
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
+- [x] `ChatComMemoria(api_key="   ")` levanta `ValueError` citando `api_key`, sem a string `.env`
+- [x] `ChatComMemoria(modelo="")` idem, citando `modelo`
+- [x] `ChatComMemoria(base_url="api.groq.com/openai/v1")` recusa citando o valor recebido, sem a string `.env`
+- [x] Valor inválido vindo do **ambiente** continua produzindo a mensagem que cita o `.env`, como hoje (exceto `OPENAI_BASE_URL`, que nunca citou `.env` — AD-008)
+- [x] Testes novos discriminam o reaproveitamento da mensagem do ambiente e a checagem `is None` no lugar de valor em branco
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
 
 **Tests**: unit
 **Gate**: full

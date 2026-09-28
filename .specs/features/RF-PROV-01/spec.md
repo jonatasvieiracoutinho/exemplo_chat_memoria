@@ -168,7 +168,7 @@ Trocar de provedor compatível com a API OpenAI hoje custa três passos fora do 
 | PROV-06 | CA-PROV-01 | P1: Perfis no ambiente | 2 | Pending |
 | PROV-07 | CA-PROV-02 | P1: Perfis no ambiente | 2 | Pending |
 | PROV-08 | CA-PROV-03 | P1: Override no construtor | 3 | Done |
-| PROV-09 | CA-PROV-04 | P1: Override no construtor | 3 | Pending |
+| PROV-09 | CA-PROV-04 | P1: Override no construtor | 3 | Done |
 | PROV-10 | CA-PROV-05 | P1: Troca pela barra lateral | 4 | Pending |
 | PROV-11 | CA-PROV-06 | P1: Troca pela barra lateral | 4 | Pending |
 | PROV-12 | CA-PROV-07 | P1: Troca pela barra lateral | 4 | Pending |

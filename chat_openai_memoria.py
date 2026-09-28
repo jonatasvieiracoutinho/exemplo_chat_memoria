@@ -139,6 +139,8 @@ class ChatComMemoria:
                     "Crie o arquivo .env com: OPENAI_API_KEY=sua-chave-aqui"
                 )
         else:
+            if not api_key.strip():
+                raise ValueError("api_key não pode ser vazio ou conter apenas espaços.")
             self.api_key = api_key
 
         # Validar Modelo (parâmetro vence ambiente; None = leia do ambiente)
@@ -150,6 +152,8 @@ class ChatComMemoria:
                     "Adicione no arquivo .env: OPENAI_MODEL=gpt-4o-mini"
                 )
         else:
+            if not modelo.strip():
+                raise ValueError("modelo não pode ser vazio ou conter apenas espaços.")
             self.modelo = modelo
 
         # Validar Temperature
@@ -191,14 +195,20 @@ class ChatComMemoria:
             raise
 
         # Validar Base URL (opcional; parâmetro vence ambiente; None = leia do ambiente)
-        self.base_url = os.getenv("OPENAI_BASE_URL") if base_url is None else base_url
-        if self.base_url:
-            # Validar formato básico de URL
-            if not (self.base_url.startswith("http://") or self.base_url.startswith("https://")):
+        if base_url is None:
+            self.base_url = os.getenv("OPENAI_BASE_URL")
+            if self.base_url and not (self.base_url.startswith("http://") or self.base_url.startswith("https://")):
                 raise ValueError(
                     f"OPENAI_BASE_URL inválida: '{self.base_url}'. "
                     f"A URL deve começar com http:// ou https://"
                 )
+        else:
+            if not (base_url.startswith("http://") or base_url.startswith("https://")):
+                raise ValueError(
+                    f"base_url inválida: '{base_url}'. "
+                    f"A URL deve começar com http:// ou https://"
+                )
+            self.base_url = base_url
 
         # Configurações opcionais de gerenciamento de memória
         # Prioridade: parâmetro do construtor > .env > None (desabilitado)
