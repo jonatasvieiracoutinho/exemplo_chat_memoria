@@ -527,3 +527,71 @@ def test_provedor_perfil_digitado_valido_troca_sessao_com_os_tres_valores():
     assert kwargs["base_url"] == "https://api.groq.com/openai/v1"
 
 
+def test_provedor_perfil_digitado_campo_vazio_nao_troca_sessao():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock_com_helpers()
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat) as construir_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.selectbox[-1].set_value("Perfil digitado").run()
+        at.sidebar.text_input[-3].set_value("https://api.groq.com/openai/v1").run()
+        at.sidebar.text_input[-2].set_value("   ").run()
+        at.sidebar.text_input[-1].set_value("llama-3.3-70b-versatile").run()
+        at.sidebar.button[-1].click().run()
+
+    assert at.session_state["chat"] is chat
+    assert len(at.error) == 1
+    assert "chave" in at.error[0].value
+    assert len(at.chat_message) == 2
+    construir_mock.assert_called_once()
+
+
+def test_provedor_perfil_digitado_url_sem_esquema_exibe_erro_e_nao_troca_sessao():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock_com_helpers()
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat) as construir_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.selectbox[-1].set_value("Perfil digitado").run()
+        at.sidebar.text_input[-3].set_value("api.groq.com/openai/v1").run()
+        at.sidebar.text_input[-2].set_value("gsk_digitada").run()
+        at.sidebar.text_input[-1].set_value("llama-3.3-70b-versatile").run()
+        at.sidebar.button[-1].click().run()
+
+    assert at.session_state["chat"] is chat
+    assert len(at.error) == 1
+    assert "api.groq.com/openai/v1" in at.error[0].value
+    assert "gsk_digitada" not in at.error[0].value
+    assert len(at.chat_message) == 2
+    construir_mock.assert_called_once()
+
+
+def test_provedor_perfil_digitado_nunca_ecoa_a_chave_no_conteudo_renderizado():
+    from streamlit.testing.v1 import AppTest
+
+    chat_inicial = _chat_mock_com_helpers()
+    chat_digitado = _chat_mock()
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch(
+             "app_streamlit_core.construir_sessao_chat",
+             side_effect=[chat_inicial, chat_digitado],
+         ):
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.selectbox[-1].set_value("Perfil digitado").run()
+        at.sidebar.text_input[-3].set_value("https://api.groq.com/openai/v1").run()
+        at.sidebar.text_input[-2].set_value("gsk_super_secreta_999").run()
+        at.sidebar.text_input[-1].set_value("llama-3.3-70b-versatile").run()
+        at.sidebar.button[-1].click().run()
+
+    textos_renderizados = [c.value for c in at.sidebar.caption] + [e.value for e in at.error]
+    assert all("gsk_super_secreta_999" not in texto for texto in textos_renderizados)
+
+

@@ -616,12 +616,12 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] Campo vazio ou só com espaços sinaliza o obrigatório, o objeto de sessão é o mesmo de antes e a conversa continua visível
-- [ ] URL digitada sem esquema exibe erro contendo a URL recebida e não troca a sessão
-- [ ] Nenhum texto renderizado na tela contém a chave digitada, em nenhum dos caminhos
-- [ ] Testes novos assertam identidade do objeto de sessão e ausência da chave no conteúdo renderizado, discriminando o eco em resumo de confirmação
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
+- [x] Campo vazio ou só com espaços sinaliza o obrigatório, o objeto de sessão é o mesmo de antes e a conversa continua visível
+- [x] URL digitada sem esquema exibe erro contendo a URL recebida e não troca a sessão
+- [x] Nenhum texto renderizado na tela contém a chave digitada, em nenhum dos caminhos
+- [x] Testes novos assertam identidade do objeto de sessão e ausência da chave no conteúdo renderizado, discriminando o eco em resumo de confirmação
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
 
 **Tests**: integration
 **Gate**: full

@@ -66,5 +66,13 @@
 - **Date**: 2026-09-28
 - **Status**: active
 
+### AD-009
+- **Decision**: Em T17/T18 (`tasks.md`), o código de wiring do Perfil digitado em `app_streamlit.py` foi escrito em um único bloco condicional que já cobre o caminho de sucesso (T17) e as duas recusas — campo vazio e URL sem esquema (T18) —, porque a validação e a construção da sessão nova formam um só fluxo de decisão no widget. O commit de T17 trouxe esse bloco completo mais só os testes do caminho de sucesso; o commit de T18 traz os testes que discriminam as recusas, sem mudança de produção.
+- **Reason**: Separar o código do caminho de sucesso do código de recusa dentro do mesmo `if/else` produziria um T17 que compila mas não recusa nada — um estado intermediário sem sentido próprio. O corte ficou nos testes, que são a unidade que corresponde a cada task.
+- **Trade-off**: O commit de T18 é `feat` sem alteração de produção, só testes; o comportamento que ele documenta já existe desde T17. Nenhum critério de aceite fica sem teste.
+- **Scope**: `app_streamlit.py`, `tests/test_app_streamlit_ui.py`, tasks T17 e T18.
+- **Date**: 2026-09-28
+- **Status**: active
+
 ## Handoff
 
