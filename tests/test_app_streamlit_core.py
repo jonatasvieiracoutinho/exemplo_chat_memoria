@@ -167,6 +167,95 @@ def test_mascarar_chave_onze_caracteres_fica_opaca():
     assert chave not in resultado
 
 
+# ---------- trocar_perfil ----------
+
+def test_trocar_perfil_indisponivel_devolve_motivo_sem_chamar_construtor():
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Ollama local",
+        "base_url": None,
+        "api_key": None,
+        "modelo": None,
+        "disponivel": False,
+        "motivo_indisponivel": "Perfil Ollama local: variável PERFIL_OLLAMA_LOCAL_MODEL ausente ou vazia",
+    }
+    with patch.object(app_streamlit_core, "construir_sessao_chat") as mock_construir:
+        chat, motivo = trocar_perfil(perfil)
+        assert chat is None
+        assert motivo == perfil["motivo_indisponivel"]
+        mock_construir.assert_not_called()
+
+
+def test_trocar_perfil_sucesso_devolve_objeto_novo_sem_tocar_session_state():
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Groq",
+        "base_url": "https://api.groq.com/openai/v1",
+        "api_key": "gsk_exemplo",
+        "modelo": "llama-3.3-70b-versatile",
+        "disponivel": True,
+        "motivo_indisponivel": None,
+    }
+    chat_novo = MagicMock()
+    with patch.object(app_streamlit_core, "construir_sessao_chat", return_value=chat_novo) as mock_construir:
+        chat, motivo = trocar_perfil(perfil, gerenciador="ger", thread_id=7)
+        assert chat is chat_novo
+        assert motivo is None
+        mock_construir.assert_called_once_with(
+            gerenciador="ger",
+            thread_id=7,
+            api_key="gsk_exemplo",
+            modelo="llama-3.3-70b-versatile",
+            base_url="https://api.groq.com/openai/v1",
+        )
+
+
+def test_trocar_perfil_construtor_recusa_devolve_motivo_sem_propagar():
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Groq",
+        "base_url": "https://api.groq.com/openai/v1",
+        "api_key": "gsk_exemplo",
+        "modelo": "llama-3.3-70b-versatile",
+        "disponivel": True,
+        "motivo_indisponivel": None,
+    }
+    with patch.object(app_streamlit_core, "construir_sessao_chat", side_effect=ValueError("modelo inválido")):
+        chat, motivo = trocar_perfil(perfil)
+        assert chat is None
+        assert motivo == "modelo inválido"
+
+
+def test_trocar_perfil_nao_importa_streamlit():
+    import app_streamlit_core
+    with open(app_streamlit_core.__file__, "r", encoding="utf-8") as f:
+        codigo = f.read()
+    assert "import streamlit" not in codigo
+
+
+def test_trocar_perfil_disponivel_constroi_antes_de_qualquer_descarte():
+    """Discrimina a inversão de ordem: a validação de disponibilidade
+    acontece antes de qualquer chamada ao construtor."""
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Ollama local",
+        "base_url": None,
+        "api_key": None,
+        "modelo": None,
+        "disponivel": False,
+        "motivo_indisponivel": "indisponível",
+    }
+    with patch.object(app_streamlit_core, "construir_sessao_chat") as mock_construir:
+        mock_construir.side_effect = AssertionError("não deveria construir Perfil indisponível")
+        chat, motivo = trocar_perfil(perfil)
+        assert chat is None
+        assert motivo == "indisponível"
+
+
 # ---------- sanitizar_erro ----------
 
 def test_sanitizar_erro_nao_contem_texto_bruto_da_excecao():

@@ -464,13 +464,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] Perfil indisponível devolve `(None, motivo)` com a variável faltante no motivo, sem chamar o construtor
-- [ ] `ValueError` do construtor é capturada e devolvida como motivo, sem propagar
-- [ ] Sucesso devolve o objeto novo; a função não lê nem escreve `st.session_state`
-- [ ] A função não importa `streamlit`
-- [ ] Testes novos discriminam a inversão de ordem: construção antes da validação
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
-- [ ] Test count: ao menos 3 testes novos passam
+- [x] Perfil indisponível devolve `(None, motivo)` com a variável faltante no motivo, sem chamar o construtor
+- [x] `ValueError` do construtor é capturada e devolvida como motivo, sem propagar
+- [x] Sucesso devolve o objeto novo; a função não lê nem escreve `st.session_state`
+- [x] A função não importa `streamlit`
+- [x] Testes novos discriminam a inversão de ordem: construção antes da validação
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
+- [x] Test count: ao menos 3 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

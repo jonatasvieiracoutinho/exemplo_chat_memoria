@@ -130,6 +130,29 @@ def carregar_perfis() -> list:
     return perfis
 
 
+def trocar_perfil(perfil: dict, gerenciador=None, thread_id=None):
+    """Valida o Perfil escolhido e constrói a sessão nova antes de qualquer
+    descarte da anterior.
+
+    Perfil indisponível devolve `(None, motivo)` sem chamar o construtor.
+    `ValueError` do construtor é capturada e devolvida como motivo, sem
+    propagar. Sucesso devolve `(chat_novo, None)`. Não lê nem escreve
+    `st.session_state` e não importa `streamlit`."""
+    if not perfil["disponivel"]:
+        return None, perfil["motivo_indisponivel"]
+    try:
+        chat_novo = construir_sessao_chat(
+            gerenciador=gerenciador,
+            thread_id=thread_id,
+            api_key=perfil["api_key"],
+            modelo=perfil["modelo"],
+            base_url=perfil["base_url"],
+        )
+    except ValueError as exc:
+        return None, str(exc)
+    return chat_novo, None
+
+
 def sanitizar_erro(exc: Exception, chat=None) -> str:
     """Converte a exceção no seu texto com a chave ativa mascarada.
 
