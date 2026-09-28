@@ -36,7 +36,7 @@ Todas as 10 tasks de `tasks.md` estão marcadas `[x]`; nenhuma bloqueada ou parc
 | WHEN envia mensagem THEN chama `ChatComMemoria.enviar_mensagem()` e exibe retorno sem stdout/ANSI | resposta vem do valor de retorno, não de print | `app_streamlit_core.py:46` - `chat.enviar_mensagem(texto)`; `tests/test_app_streamlit_core.py:87-94` - `chat.enviar_mensagem.assert_called_once_with("Olá")`; `tests/test_app_streamlit_ui.py:37-57` | ✅ PASS |
 | Exibir histórico em ordem, distinguindo user/assistant | pares `(role, content)` na ordem original | `app_streamlit_core.py:51-53`; `tests/test_app_streamlit_core.py:131-139` - `assert pares == [("user","Pergunta"),("assistant","Resposta")]` | ✅ PASS |
 | WHILE sessão ativa preservar `chat`/`thread_id`/histórico em `session_state` | mesma instância entre reruns | `app_streamlit.py:24-31`; `tests/test_app_streamlit_ui.py:79-101` - `construir_mock.assert_called_once()`, `at.session_state["chat"] is chat` | ✅ PASS |
-| IF `enviar_mensagem()` levanta exceção THEN erro amigável sem chave/stack/detalhes | mensagem fixa `MENSAGEM_ERRO_AMIGAVEL`, sem texto bruto | `app_streamlit_core.py:31-34,47-48` - `sanitizar_erro` retorna constante fixa; `tests/test_app_streamlit_core.py:97-104` - `assert "sk-segredo" not in erro`; `tests/test_app_streamlit_ui.py:60-76` - `assert "Não foi possível obter resposta" in at.error[0].value` | ✅ PASS |
+| IF `enviar_mensagem()` levanta exceção THEN erro amigável sem chave/stack/detalhes | mensagem fixa `MENSAGEM_ERRO_AMIGAVEL`, sem texto bruto | `app_streamlit_core.py:31-34,47-48` - `sanitizar_erro` retorna constante fixa; `tests/test_app_streamlit_core.py:97-104` - `assert "sk-segredo" not in erro`; `tests/test_app_streamlit_ui.py:60-76` - `assert "Não foi possível obter resposta" in at.error[0].value` | ✅ PASS (superado por RF-PROV-01: a mensagem fixa deixa de existir; a tela passa a exibir o texto da exceção com a chave mascarada) |
 
 ### P2: Ações essenciais da conversa na UI
 
@@ -129,7 +129,7 @@ Scratch isolado via `git worktree add --detach <mktemp -d>/sensor HEAD`; baselin
 Gatilho acionado: diff toca entrada não confiável (texto do usuário em `enviar_mensagem_seguro`) e sistema de arquivos (`exportar_conversa_texto` via `tempfile`). Revisão Modo P sobre o diff:
 
 - ✅ Sem secrets hardcoded introduzidos.
-- ✅ `sanitizar_erro` retorna mensagem fixa, nunca o texto bruto da exceção nem stack trace — sem vazamento em log/UI.
+- ✅ `sanitizar_erro` retorna mensagem fixa, nunca o texto bruto da exceção nem stack trace — sem vazamento em log/UI. Superado por RF-PROV-01: passa a devolver o texto da exceção com a chave mascarada, decisão registrada em `docs/requisitos/RF-PROV-01.md`.
 - ✅ Arquivo temporário criado via `tempfile.NamedTemporaryFile` (nome não previsível, permissão restrita por padrão do SO) e removido com `os.remove` no mesmo fluxo; nunca grava no repositório.
 - ✅ `st.write(content)` (`app_streamlit.py:76`) não usa `unsafe_allow_html`; sem risco de XSS via conteúdo do assistente.
 - ✅ `thread_id` usado em `retomar_thread`/`excluir_thread` vem apenas das opções listadas por `listar_threads` (não é texto livre); sem SQL novo (delega a `GerenciadorPersistencia`, não modificado neste diff).

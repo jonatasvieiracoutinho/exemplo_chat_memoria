@@ -196,12 +196,12 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] O AC da mensagem amigável no `spec.md` daquela feature traz a nota citando RF-PROV-01, com o texto original preservado
-- [ ] A descrição de `sanitizar_erro` no `design.md` daquela feature traz a nota
-- [ ] A linha de evidência do `validation.md` daquela feature traz a nota
-- [ ] Teste novo em `tests/test_docs_superacao_rf_prov_01.py` confirma a presença da nota nos três arquivos
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 3 testes novos passam e a suíte inteira segue verde
+- [x] O AC da mensagem amigável no `spec.md` daquela feature traz a nota citando RF-PROV-01, com o texto original preservado
+- [x] A descrição de `sanitizar_erro` no `design.md` daquela feature traz a nota
+- [x] A linha de evidência do `validation.md` daquela feature traz a nota
+- [x] Teste novo em `tests/test_docs_superacao_rf_prov_01.py` confirma a presença da nota nos três arquivos
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 3 testes novos passam e a suíte inteira segue verde
 
 **Tests**: unit
 **Gate**: full

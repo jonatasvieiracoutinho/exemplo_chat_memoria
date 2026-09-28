@@ -63,6 +63,8 @@ Toda ambiguidade é resolvida ou registrada aqui — nada fica silenciosamente i
 4. WHILE a mesma sessão do navegador permanece ativa the system SHALL preservar em `st.session_state` a instância de `ChatComMemoria`, o `thread_id` e o histórico entre interações  <!-- state-driven -->
 5. IF `enviar_mensagem()` levanta exceção THEN the system SHALL exibir mensagem de erro amigável sem expor chave, stack trace ou detalhes internos  <!-- unwanted-behavior -->
 
+> ⚠️ **Superado por RF-PROV-01** (2026-09-28): a mensagem amigável fixa deixa de existir; a tela passa a exibir o texto técnico da exceção com a chave mascarada, para permitir diagnosticar URL/chave/modelo do provedor. Ver `docs/requisitos/RF-PROV-01.md`.
+
 **Independent Test**: Via `AppTest`, enviar uma mensagem com `enviar_mensagem` mockado e ver a resposta e o histórico renderizados; reexecutar e confirmar que o estado persiste.
 
 ---
@@ -119,6 +121,7 @@ Toda ambiguidade é resolvida ou registrada aqui — nada fica silenciosamente i
 ## Edge Cases
 
 - IF a API retorna erro (rede, cota, chave inválida) THEN the system SHALL exibir texto amigável e manter a UI utilizável  <!-- unwanted-behavior -->
+  <!-- Superado por RF-PROV-01: o texto exibido passa a ser o da exceção, com a chave mascarada, não mais uma mensagem amigável genérica. -->
 - IF o usuário envia mensagem vazia THEN the system SHALL não chamar a API e manter o estado inalterado  <!-- unwanted-behavior -->
 - IF `total_tokens_thread()` retorna nulos/ausentes THEN the system SHALL exibir a estimativa aproximada sem quebrar  <!-- unwanted-behavior -->
 
@@ -158,6 +161,6 @@ Cada requisito recebe um ID rastreável. A coluna **Origem** liga ao ID congelad
 - [ ] `streamlit run app_streamlit.py` sobe a app e permite conversar (CA-01).
 - [ ] Enviar/receber, histórico, limpar, tokens, exportar; sob persistência, listar/retomar/excluir threads (CA-02).
 - [ ] Estado persiste entre interações da mesma sessão (CA-06).
-- [ ] Erros da API aparecem amigáveis, sem vazar chave nem detalhes (CA-07).
+- [ ] Erros da API aparecem amigáveis, sem vazar chave nem detalhes (CA-07). Superado por RF-PROV-01: o texto passa a ser o da exceção, com a chave mascarada.
 - [ ] Scripts sobem a app sem passos manuais; sem `.venv`, erro claro (CA-03/CA-04/CA-05).
 - [ ] Suíte atual (incl. `tests/test_integracao_chat.py`) segue passando (CA-08).
