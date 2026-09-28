@@ -534,3 +534,51 @@ def test_carregar_perfis_perfis_vazia_devolve_so_padrao():
         perfis = carregar_perfis()
         assert len(perfis) == 1
         assert perfis[0]["nome"] == "Padrão (.env)"
+
+
+# ---------- validar_perfil_digitado ----------
+
+def test_validar_perfil_digitado_tres_campos_validos_devolve_perfil_com_esses_valores():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "https://api.groq.com/openai/v1", "gsk_exemplo", "llama-3.3-70b-versatile"
+    )
+    assert motivo is None
+    assert perfil["base_url"] == "https://api.groq.com/openai/v1"
+    assert perfil["api_key"] == "gsk_exemplo"
+    assert perfil["modelo"] == "llama-3.3-70b-versatile"
+    assert perfil["disponivel"] is True
+
+
+def test_validar_perfil_digitado_base_url_vazia_nomeia_o_campo():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado("", "gsk_exemplo", "llama-3.3-70b-versatile")
+    assert perfil is None
+    assert "base URL" in motivo
+
+
+def test_validar_perfil_digitado_chave_so_com_espacos_nomeia_o_campo():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "https://api.groq.com/openai/v1", "   ", "llama-3.3-70b-versatile"
+    )
+    assert perfil is None
+    assert "chave" in motivo
+
+
+def test_validar_perfil_digitado_modelo_vazio_nomeia_o_campo():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "https://api.groq.com/openai/v1", "gsk_exemplo", ""
+    )
+    assert perfil is None
+    assert "modelo" in motivo
+
+
+def test_validar_perfil_digitado_url_sem_esquema_devolve_motivo_com_url_recebida():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "api.groq.com/openai/v1", "gsk_exemplo", "llama-3.3-70b-versatile"
+    )
+    assert perfil is None
+    assert "api.groq.com/openai/v1" in motivo

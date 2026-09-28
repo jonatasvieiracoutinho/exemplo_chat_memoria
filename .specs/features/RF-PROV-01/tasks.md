@@ -556,13 +556,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] Três campos preenchidos com URL válida devolvem o Perfil com exatamente esses valores
-- [ ] Qualquer campo vazio ou só com espaços devolve recusa nomeando o campo
-- [ ] `api.groq.com/openai/v1` devolve recusa contendo a URL recebida
-- [ ] A função não registra em log nem grava em disco o valor digitado
-- [ ] Testes novos discriminam a checagem de `None` no lugar de valor em branco e a troca do esquema por um truthy da string
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
-- [ ] Test count: ao menos 4 testes novos passam
+- [x] Três campos preenchidos com URL válida devolvem o Perfil com exatamente esses valores
+- [x] Qualquer campo vazio ou só com espaços devolve recusa nomeando o campo
+- [x] `api.groq.com/openai/v1` devolve recusa contendo a URL recebida
+- [x] A função não registra em log nem grava em disco o valor digitado
+- [x] Testes novos discriminam a checagem de `None` no lugar de valor em branco e a troca do esquema por um truthy da string
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
+- [x] Test count: ao menos 4 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

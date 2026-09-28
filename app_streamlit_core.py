@@ -153,6 +153,28 @@ def trocar_perfil(perfil: dict, gerenciador=None, thread_id=None):
     return chat_novo, None
 
 
+def validar_perfil_digitado(base_url: str, api_key: str, modelo: str):
+    """Valida os três campos do Perfil digitado na barra lateral.
+
+    Devolve `(perfil, None)` com o Perfil montado quando os três campos
+    estão preenchidos e a base URL tem esquema; devolve `(None, motivo)`
+    nomeando o campo obrigatório ausente ou a URL recebida sem esquema.
+    Não registra em log nem grava em disco os valores recebidos."""
+    for nome_campo, valor in (("base URL", base_url), ("chave", api_key), ("modelo", modelo)):
+        if not valor or not valor.strip():
+            return None, f"Perfil digitado: campo {nome_campo} é obrigatório"
+    if not (base_url.startswith("http://") or base_url.startswith("https://")):
+        return None, f"Perfil digitado: base URL '{base_url}' não começa com http:// nem https://"
+    return {
+        "nome": "Perfil digitado",
+        "base_url": base_url,
+        "api_key": api_key,
+        "modelo": modelo,
+        "disponivel": True,
+        "motivo_indisponivel": None,
+    }, None
+
+
 def sanitizar_erro(exc: Exception, chat=None) -> str:
     """Converte a exceção no seu texto com a chave ativa mascarada.
 
