@@ -64,6 +64,49 @@ def test_construir_sessao_chat_com_persistencia_usa_gerenciador_e_thread_id(open
         assert chat.thread_id == 42
 
 
+# ---------- mascarar_chave ----------
+
+def test_mascarar_chave_doze_ou_mais_caracteres_vira_parcial():
+    from app_streamlit_core import mascarar_chave
+    texto = "chave gsk_abc123XYZ789 invalida"
+    resultado = mascarar_chave(texto, ["gsk_abc123XYZ789"])
+    assert "gsk_***Z789" in resultado
+    assert "gsk_abc123XYZ789" not in resultado
+
+
+def test_mascarar_chave_menos_de_doze_vira_opaca():
+    from app_streamlit_core import mascarar_chave
+    texto = "provedor ollama sem chave"
+    resultado = mascarar_chave(texto, ["ollama"])
+    assert "***" in resultado
+    assert "ollama" not in resultado
+
+
+def test_mascarar_chave_none_ou_vazia_e_ignorada_sem_erro():
+    from app_streamlit_core import mascarar_chave
+    texto = "texto sem nenhuma chave"
+    resultado = mascarar_chave(texto, [None, ""])
+    assert resultado == texto
+
+
+def test_mascarar_chave_limite_exato_doze_caracteres():
+    from app_streamlit_core import mascarar_chave
+    chave = "123456789012"  # exatamente 12 caracteres
+    texto = f"chave {chave} usada"
+    resultado = mascarar_chave(texto, [chave])
+    assert "1234***9012" in resultado
+    assert chave not in resultado
+
+
+def test_mascarar_chave_onze_caracteres_fica_opaca():
+    from app_streamlit_core import mascarar_chave
+    chave = "12345678901"  # 11 caracteres
+    texto = f"chave {chave} usada"
+    resultado = mascarar_chave(texto, [chave])
+    assert "***" in resultado
+    assert chave not in resultado
+
+
 # ---------- sanitizar_erro ----------
 
 def test_sanitizar_erro_nao_contem_texto_bruto_da_excecao():

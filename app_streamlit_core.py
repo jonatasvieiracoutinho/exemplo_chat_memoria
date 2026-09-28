@@ -25,6 +25,22 @@ def construir_sessao_chat(gerenciador=None, thread_id=None) -> ChatComMemoria:
     return ChatComMemoria()
 
 
+def mascarar_chave(texto: str, chaves) -> str:
+    """Substitui cada ocorrência de uma chave não vazia em `texto` por uma
+    máscara: 4 primeiros + `***` + 4 últimos quando a chave tem 12
+    caracteres ou mais, `***` inteiro quando tem menos."""
+    resultado = texto
+    for chave in chaves:
+        if not chave:
+            continue
+        if len(chave) >= 12:
+            mascara = f"{chave[:4]}***{chave[-4:]}"
+        else:
+            mascara = "***"
+        resultado = resultado.replace(chave, mascara)
+    return resultado
+
+
 MENSAGEM_ERRO_AMIGAVEL = "Não foi possível obter resposta agora. Tente novamente em instantes."
 
 
