@@ -483,3 +483,47 @@ def test_sidebar_excluir_thread_chama_helper_do_nucleo():
         at.sidebar.button[2].click().run()
 
     excluir_mock.assert_called_once_with(gerenciador, 1)
+
+
+def test_provedor_seletor_oferece_perfil_digitado():
+    from streamlit.testing.v1 import AppTest
+
+    chat = _chat_mock()
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat):
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+
+    assert "Perfil digitado" in at.sidebar.selectbox[-1].options
+
+
+def test_provedor_perfil_digitado_valido_troca_sessao_com_os_tres_valores():
+    from streamlit.testing.v1 import AppTest
+
+    chat_inicial = _chat_mock_com_helpers()
+    chat_digitado = _chat_mock()
+
+    with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
+         patch(
+             "app_streamlit_core.construir_sessao_chat",
+             side_effect=[chat_inicial, chat_digitado],
+         ) as construir_mock:
+        at = AppTest.from_file("../app_streamlit.py")
+        at.run()
+        at.sidebar.selectbox[-1].set_value("Perfil digitado").run()
+        at.sidebar.text_input[-3].set_value("https://api.groq.com/openai/v1").run()
+        at.sidebar.text_input[-2].set_value("gsk_digitada").run()
+        at.sidebar.text_input[-1].set_value("llama-3.3-70b-versatile").run()
+        at.sidebar.button[-1].click().run()
+
+    assert at.session_state["chat"] is chat_digitado
+    assert at.session_state["thread_id"] is None
+    assert at.session_state["perfil_ativo"] == "Perfil digitado"
+    assert len(at.chat_message) == 0
+    _, kwargs = construir_mock.call_args
+    assert kwargs["api_key"] == "gsk_digitada"
+    assert kwargs["modelo"] == "llama-3.3-70b-versatile"
+    assert kwargs["base_url"] == "https://api.groq.com/openai/v1"
+
+

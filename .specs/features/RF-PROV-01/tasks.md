@@ -586,13 +586,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] O seletor oferece a entrada digitada com os três campos
-- [ ] O campo da chave usa entrada mascarada na tela
-- [ ] Confirmação válida constrói a sessão com exatamente os três valores digitados e a conversa esvazia
-- [ ] Os valores digitados vivem só em `st.session_state`, sem gravação em disco
-- [ ] Testes novos com `AppTest` conferem os argumentos recebidos pelo construtor mockado
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 3 testes novos passam e a suíte inteira segue verde
+- [x] O seletor oferece a entrada digitada com os três campos
+- [x] O campo da chave usa entrada mascarada na tela
+- [x] Confirmação válida constrói a sessão com exatamente os três valores digitados e a conversa esvazia
+- [x] Os valores digitados vivem só em `st.session_state`, sem gravação em disco
+- [x] Testes novos com `AppTest` conferem os argumentos recebidos pelo construtor mockado
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 3 testes novos passam e a suíte inteira segue verde
 
 **Tests**: integration
 **Gate**: full
