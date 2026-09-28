@@ -225,11 +225,11 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] O critério CA-07 do PRD traz a nota citando RF-PROV-01 e a mitigação por mascaramento
-- [ ] O texto original do PRD não é apagado
-- [ ] `tests/test_docs_superacao_rf_prov_01.py` ganha a assertiva do PRD
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 1 teste novo passa e a suíte inteira segue verde
+- [x] O critério CA-07 do PRD traz a nota citando RF-PROV-01 e a mitigação por mascaramento
+- [x] O texto original do PRD não é apagado
+- [x] `tests/test_docs_superacao_rf_prov_01.py` ganha a assertiva do PRD
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 1 teste novo passa e a suíte inteira segue verde
 
 **Tests**: unit
 **Gate**: full

@@ -97,7 +97,8 @@ scripts para Windows (`.bat`) e Linux/Mac (`.sh`).
   **excluir** threads, reaproveitando `GerenciadorPersistencia`; quando desativada,
   ocultar/desabilitar essas ações.
 - **RF-09** — Capturar exceções levantadas por `enviar_mensagem()` e exibir mensagem de
-  erro amigável na tela, sem expor detalhes sensíveis (ex.: chave, stack trace).
+  erro amigável na tela, sem expor detalhes sensíveis (ex.: chave, stack trace). Superado
+  por RF-PROV-01: a tela passa a exibir o texto da exceção com a chave mascarada.
 - **RF-10** — Reutilizar o mesmo `.env`/variáveis já validadas por `ChatComMemoria`, sem
   novo mecanismo de configuração; a `OPENAI_API_KEY` permanece exclusivamente no
   servidor, nunca no browser.
@@ -125,7 +126,9 @@ scripts para Windows (`.bat`) e Linux/Mac (`.sh`).
 - **CA-06** — O estado da conversa persiste entre interações da mesma sessão (não é
   reiniciado a cada mensagem).
 - **CA-07** — Erros da API são exibidos de forma amigável, sem vazar chave nem detalhes
-  internos.
+  internos. Superado por RF-PROV-01: a tela passa a exibir o texto técnico da exceção, com
+  a chave mascarada como mitigação, para permitir diagnosticar URL/chave/modelo do
+  provedor (ver `docs/requisitos/RF-PROV-01.md`).
 - **CA-08** — A CLI existente e a API pública de `ChatComMemoria` permanecem inalteradas
   (os testes atuais, incl. `tests/test_integracao_chat.py`, continuam válidos).
 
