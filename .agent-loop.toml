@@ -30,7 +30,7 @@ itens = []
 [[estagios]]
 nome = "planejar"
 prompt = "01-planejar.md"
-modelo = "claude-sonnet-5"
+modelo = "claude-opus-5"
 effort = "medium"
 
 [[estagios]]
