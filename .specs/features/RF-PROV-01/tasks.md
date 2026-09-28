@@ -167,12 +167,12 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] O `st.error` da tela contém o texto da exceção e não contém a chave crua
-- [ ] A fala do usuário continua visível na falha, sem bolha de assistente
-- [ ] Os mocks que usavam o texto fixo apenas como retorno, sem assertiva, seguem válidos
-- [ ] Nenhum teste é apagado ou marcado como `skip`
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: a suíte inteira passa, contagem igual ou maior que 112
+- [x] O `st.error` da tela contém o texto da exceção e não contém a chave crua
+- [x] A fala do usuário continua visível na falha, sem bolha de assistente
+- [x] Os mocks que usavam o texto fixo apenas como retorno, sem assertiva, seguem válidos
+- [x] Nenhum teste é apagado ou marcado como `skip`
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: a suíte inteira passa, contagem igual ou maior que 112
 
 **Tests**: integration
 **Gate**: full

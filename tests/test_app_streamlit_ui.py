@@ -61,19 +61,21 @@ def test_app_erro_sanitizado_aparece_amigavel():
     from streamlit.testing.v1 import AppTest
 
     chat = _chat_mock()
-
-    def _enviar_com_erro(c, texto):
-        return None, "Não foi possível obter resposta agora. Tente novamente em instantes."
+    chat.api_key = "gsk_abc123XYZ789"
+    chat.enviar_mensagem.side_effect = Exception(
+        "AuthenticationError: Incorrect API key provided: gsk_abc123XYZ789"
+    )
 
     with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
-         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
-         patch("app_streamlit_core.enviar_mensagem_seguro", side_effect=_enviar_com_erro):
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat):
         at = AppTest.from_file("../app_streamlit.py")
         at.run()
         at.chat_input[0].set_value("Olá").run()
 
     assert len(at.error) == 1
-    assert "Não foi possível obter resposta" in at.error[0].value
+    assert "Incorrect API key provided" in at.error[0].value
+    assert "gsk_abc123XYZ789" not in at.error[0].value
+    assert "gsk_***Z789" in at.error[0].value
 
 
 def test_app_preserva_estado_entre_reruns():
@@ -261,13 +263,13 @@ def test_erro_sanitizado_mantem_fala_do_usuario_visivel_sem_append():
     from streamlit.testing.v1 import AppTest
 
     chat = _chat_mock()
-
-    def _enviar_com_erro_sem_append(c, texto):
-        return None, "Não foi possível obter resposta agora. Tente novamente em instantes."
+    chat.api_key = "gsk_abc123XYZ789"
+    chat.enviar_mensagem.side_effect = Exception(
+        "AuthenticationError: Incorrect API key provided: gsk_abc123XYZ789"
+    )
 
     with patch("app_streamlit_core.persistencia_ativa", return_value=False), \
-         patch("app_streamlit_core.construir_sessao_chat", return_value=chat), \
-         patch("app_streamlit_core.enviar_mensagem_seguro", side_effect=_enviar_com_erro_sem_append):
+         patch("app_streamlit_core.construir_sessao_chat", return_value=chat):
         at = AppTest.from_file("../app_streamlit.py")
         at.run()
         at.chat_input[0].set_value("Olá").run()
@@ -275,7 +277,8 @@ def test_erro_sanitizado_mantem_fala_do_usuario_visivel_sem_append():
     textos = [m.markdown[0].value for m in at.chat_message]
     assert textos == ["Olá"]
     assert len(at.error) == 1
-    assert "Não foi possível obter resposta" in at.error[0].value
+    assert "Incorrect API key provided" in at.error[0].value
+    assert "gsk_abc123XYZ789" not in at.error[0].value
 
 
 def test_sidebar_excluir_thread_chama_helper_do_nucleo():
