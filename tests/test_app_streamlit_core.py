@@ -64,22 +64,219 @@ def test_construir_sessao_chat_com_persistencia_usa_gerenciador_e_thread_id(open
         assert chat.thread_id == 42
 
 
+def test_construir_sessao_chat_repassa_perfil_ao_construtor(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "false"}):
+        import app_streamlit_core
+        with patch.object(app_streamlit_core, "ChatComMemoria") as mock_chat:
+            app_streamlit_core.construir_sessao_chat(
+                api_key="gsk_perfil", modelo="llama3", base_url="https://api.groq.com/openai/v1"
+            )
+            mock_chat.assert_called_once_with(
+                api_key="gsk_perfil", modelo="llama3", base_url="https://api.groq.com/openai/v1"
+            )
+
+
+def test_construir_sessao_chat_com_persistencia_repassa_perfil_e_gerenciador(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "true"}):
+        import app_streamlit_core
+        with patch.object(app_streamlit_core, "ChatComMemoria") as mock_chat:
+            gerenciador = MagicMock()
+            app_streamlit_core.construir_sessao_chat(
+                gerenciador=gerenciador,
+                thread_id=42,
+                api_key="gsk_perfil",
+                modelo="llama3",
+                base_url="https://api.groq.com/openai/v1",
+            )
+            mock_chat.assert_called_once_with(
+                gerenciador=gerenciador,
+                thread_id=42,
+                api_key="gsk_perfil",
+                modelo="llama3",
+                base_url="https://api.groq.com/openai/v1",
+            )
+
+
+def test_construir_sessao_chat_sem_perfil_mantem_comportamento_atual(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "false"}):
+        from app_streamlit_core import construir_sessao_chat
+        chat = construir_sessao_chat()
+        assert chat.api_key == "sk-test-key"
+        assert chat.modelo == "gpt-4o-mini"
+
+
+# ---------- retomar_thread ----------
+
+def test_retomar_thread_repassa_perfil_informado_no_momento(openai_mockado):
+    with patch.dict("os.environ", {**ENV_VARS, "PERSISTENCIA_SQLITE": "true"}):
+        import app_streamlit_core
+        with patch.object(app_streamlit_core, "ChatComMemoria") as mock_chat:
+            gerenciador = MagicMock()
+            app_streamlit_core.retomar_thread(
+                gerenciador, 42, api_key="gsk_perfil", modelo="llama3", base_url="https://api.groq.com/openai/v1"
+            )
+            mock_chat.assert_called_once_with(
+                gerenciador=gerenciador,
+                thread_id=42,
+                api_key="gsk_perfil",
+                modelo="llama3",
+                base_url="https://api.groq.com/openai/v1",
+            )
+
+
+# ---------- mascarar_chave ----------
+
+def test_mascarar_chave_doze_ou_mais_caracteres_vira_parcial():
+    from app_streamlit_core import mascarar_chave
+    texto = "chave gsk_abc123XYZ789 invalida"
+    resultado = mascarar_chave(texto, ["gsk_abc123XYZ789"])
+    assert "gsk_***Z789" in resultado
+    assert "gsk_abc123XYZ789" not in resultado
+
+
+def test_mascarar_chave_menos_de_doze_vira_opaca():
+    from app_streamlit_core import mascarar_chave
+    texto = "provedor ollama sem chave"
+    resultado = mascarar_chave(texto, ["ollama"])
+    assert "***" in resultado
+    assert "ollama" not in resultado
+
+
+def test_mascarar_chave_none_ou_vazia_e_ignorada_sem_erro():
+    from app_streamlit_core import mascarar_chave
+    texto = "texto sem nenhuma chave"
+    resultado = mascarar_chave(texto, [None, ""])
+    assert resultado == texto
+
+
+def test_mascarar_chave_limite_exato_doze_caracteres():
+    from app_streamlit_core import mascarar_chave
+    chave = "123456789012"  # exatamente 12 caracteres
+    texto = f"chave {chave} usada"
+    resultado = mascarar_chave(texto, [chave])
+    assert "1234***9012" in resultado
+    assert chave not in resultado
+
+
+def test_mascarar_chave_onze_caracteres_fica_opaca():
+    from app_streamlit_core import mascarar_chave
+    chave = "12345678901"  # 11 caracteres
+    texto = f"chave {chave} usada"
+    resultado = mascarar_chave(texto, [chave])
+    assert "***" in resultado
+    assert chave not in resultado
+
+
+# ---------- trocar_perfil ----------
+
+def test_trocar_perfil_indisponivel_devolve_motivo_sem_chamar_construtor():
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Ollama local",
+        "base_url": None,
+        "api_key": None,
+        "modelo": None,
+        "disponivel": False,
+        "motivo_indisponivel": "Perfil Ollama local: variável PERFIL_OLLAMA_LOCAL_MODEL ausente ou vazia",
+    }
+    with patch.object(app_streamlit_core, "construir_sessao_chat") as mock_construir:
+        chat, motivo = trocar_perfil(perfil)
+        assert chat is None
+        assert motivo == perfil["motivo_indisponivel"]
+        mock_construir.assert_not_called()
+
+
+def test_trocar_perfil_sucesso_devolve_objeto_novo_sem_tocar_session_state():
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Groq",
+        "base_url": "https://api.groq.com/openai/v1",
+        "api_key": "gsk_exemplo",
+        "modelo": "llama-3.3-70b-versatile",
+        "disponivel": True,
+        "motivo_indisponivel": None,
+    }
+    chat_novo = MagicMock()
+    with patch.object(app_streamlit_core, "construir_sessao_chat", return_value=chat_novo) as mock_construir:
+        chat, motivo = trocar_perfil(perfil, gerenciador="ger", thread_id=7)
+        assert chat is chat_novo
+        assert motivo is None
+        mock_construir.assert_called_once_with(
+            gerenciador="ger",
+            thread_id=7,
+            api_key="gsk_exemplo",
+            modelo="llama-3.3-70b-versatile",
+            base_url="https://api.groq.com/openai/v1",
+        )
+
+
+def test_trocar_perfil_construtor_recusa_devolve_motivo_sem_propagar():
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Groq",
+        "base_url": "https://api.groq.com/openai/v1",
+        "api_key": "gsk_exemplo",
+        "modelo": "llama-3.3-70b-versatile",
+        "disponivel": True,
+        "motivo_indisponivel": None,
+    }
+    with patch.object(app_streamlit_core, "construir_sessao_chat", side_effect=ValueError("modelo inválido")):
+        chat, motivo = trocar_perfil(perfil)
+        assert chat is None
+        assert motivo == "modelo inválido"
+
+
+def test_trocar_perfil_nao_importa_streamlit():
+    import app_streamlit_core
+    with open(app_streamlit_core.__file__, "r", encoding="utf-8") as f:
+        codigo = f.read()
+    assert "import streamlit" not in codigo
+
+
+def test_trocar_perfil_disponivel_constroi_antes_de_qualquer_descarte():
+    """Discrimina a inversão de ordem: a validação de disponibilidade
+    acontece antes de qualquer chamada ao construtor."""
+    import app_streamlit_core
+    from app_streamlit_core import trocar_perfil
+    perfil = {
+        "nome": "Ollama local",
+        "base_url": None,
+        "api_key": None,
+        "modelo": None,
+        "disponivel": False,
+        "motivo_indisponivel": "indisponível",
+    }
+    with patch.object(app_streamlit_core, "construir_sessao_chat") as mock_construir:
+        mock_construir.side_effect = AssertionError("não deveria construir Perfil indisponível")
+        chat, motivo = trocar_perfil(perfil)
+        assert chat is None
+        assert motivo == "indisponível"
+
+
 # ---------- sanitizar_erro ----------
 
 def test_sanitizar_erro_nao_contem_texto_bruto_da_excecao():
     from app_streamlit_core import sanitizar_erro
-    exc = Exception("Erro ao chamar API OpenAI: chave sk-segredo-123 inválida")
-    msg = sanitizar_erro(exc)
-    assert "sk-segredo-123" not in msg
-    assert "Erro ao chamar API OpenAI" not in msg
+    chat = MagicMock()
+    chat.api_key = "sk-segredo-123456"
+    exc = Exception(f"Erro ao chamar API OpenAI: chave {chat.api_key} inválida")
+    msg = sanitizar_erro(exc, chat)
+    assert chat.api_key not in msg
+    assert "Erro ao chamar API OpenAI" in msg
 
 
 def test_sanitizar_erro_nao_contem_api_key_do_ambiente():
     from app_streamlit_core import sanitizar_erro
+    chat = MagicMock()
+    chat.api_key = "outra-chave-ativa-em-uso"
     with patch.dict("os.environ", {"OPENAI_API_KEY": "sk-real-key-999"}):
-        msg = sanitizar_erro(Exception("Traceback: falha em algum_modulo.py linha 10"))
+        exc = Exception("Traceback: falha em algum_modulo.py, chave sk-real-key-999")
+        msg = sanitizar_erro(exc, chat)
         assert "sk-real-key-999" not in msg
-        assert "Traceback" not in msg
+        assert "Traceback" in msg
 
 
 # ---------- enviar_mensagem_seguro ----------
@@ -95,13 +292,14 @@ def test_enviar_mensagem_seguro_sucesso_retorna_resposta_sem_erro():
 
 
 def test_enviar_mensagem_seguro_excecao_retorna_mensagem_sanitizada():
-    from app_streamlit_core import enviar_mensagem_seguro, MENSAGEM_ERRO_AMIGAVEL
+    from app_streamlit_core import enviar_mensagem_seguro
     chat = MagicMock()
-    chat.enviar_mensagem.side_effect = Exception("Erro ao chamar API OpenAI: sk-segredo")
+    chat.api_key = "sk-segredo-longa-123"
+    chat.enviar_mensagem.side_effect = Exception(f"Erro ao chamar API OpenAI: {chat.api_key}")
     resposta, erro = enviar_mensagem_seguro(chat, "Olá")
     assert resposta is None
-    assert erro == MENSAGEM_ERRO_AMIGAVEL
-    assert "sk-segredo" not in erro
+    assert chat.api_key not in erro
+    assert "Erro ao chamar API OpenAI" in erro
 
 
 def test_enviar_mensagem_seguro_texto_vazio_nao_chama_api():
@@ -200,3 +398,187 @@ def test_exportar_conversa_texto_usa_arquivo_temporario_e_devolve_conteudo():
     assert nome.endswith(".txt")
     assert caminho_usado["valor"].startswith(tempfile.gettempdir())
     assert not os.path.exists(caminho_usado["valor"])
+
+
+# ---------- carregar_perfis ----------
+
+def test_carregar_perfis_primeira_entrada_sempre_padrao_env():
+    with patch.dict("os.environ", ENV_VARS, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[0]["nome"] == "Padrão (.env)"
+        assert perfis[0]["disponivel"] is True
+        assert perfis[0]["base_url"] is None
+        assert perfis[0]["api_key"] == "sk-test-key"
+        assert perfis[0]["modelo"] == "gpt-4o-mini"
+
+
+def test_carregar_perfis_inclui_perfil_com_bloco_completo_na_ordem_declarada():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq,Ollama local",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+        "PERFIL_OLLAMA_LOCAL_BASE_URL": "http://localhost:11434/v1",
+        "PERFIL_OLLAMA_LOCAL_API_KEY": "ollama",
+        "PERFIL_OLLAMA_LOCAL_MODEL": "llama3",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        nomes = [perfil["nome"] for perfil in perfis]
+        assert nomes == ["Padrão (.env)", "Groq", "Ollama local"]
+        groq = perfis[1]
+        assert groq["disponivel"] is True
+        assert groq["base_url"] == "https://api.groq.com/openai/v1"
+        assert groq["api_key"] == "gsk_exemplo"
+        assert groq["modelo"] == "llama-3.3-70b-versatile"
+
+
+def test_carregar_perfis_normaliza_nome_com_espaco_para_prefixo():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Ollama local",
+        "PERFIL_OLLAMA_LOCAL_BASE_URL": "http://localhost:11434/v1",
+        "PERFIL_OLLAMA_LOCAL_API_KEY": "ollama",
+        "PERFIL_OLLAMA_LOCAL_MODEL": "llama3",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[1]["nome"] == "Ollama local"
+        assert perfis[1]["base_url"] == "http://localhost:11434/v1"
+
+
+# ---------- carregar_perfis: bloco incompleto ----------
+
+def test_carregar_perfis_bloco_incompleto_fica_indisponivel_e_permanece_na_lista():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Ollama local",
+        "PERFIL_OLLAMA_LOCAL_BASE_URL": "http://localhost:11434/v1",
+        "PERFIL_OLLAMA_LOCAL_API_KEY": "ollama",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        nomes = [perfil["nome"] for perfil in perfis]
+        assert "Ollama local" in nomes
+        perfil = perfis[1]
+        assert perfil["disponivel"] is False
+        assert "PERFIL_OLLAMA_LOCAL_MODEL" in perfil["motivo_indisponivel"]
+        assert "Ollama local" in perfil["motivo_indisponivel"]
+        assert perfil["modelo"] is None
+
+
+def test_carregar_perfis_variavel_so_com_espacos_conta_como_ausente():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "   ",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[1]["disponivel"] is False
+        assert "PERFIL_GROQ_MODEL" in perfis[1]["motivo_indisponivel"]
+
+
+# ---------- carregar_perfis: esquema, deduplicação e PERFIS ausente ----------
+
+def test_carregar_perfis_url_sem_esquema_fica_indisponivel_com_url_no_motivo():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq",
+        "PERFIL_GROQ_BASE_URL": "api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[1]["disponivel"] is False
+        assert "api.groq.com/openai/v1" in perfis[1]["motivo_indisponivel"]
+        assert "Groq" in perfis[1]["motivo_indisponivel"]
+
+
+def test_carregar_perfis_nome_repetido_entra_uma_vez():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq,Groq",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "llama-3.3-70b-versatile",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        nomes = [perfil["nome"] for perfil in perfis]
+        assert nomes.count("Groq") == 1
+
+
+def test_carregar_perfis_sem_perfis_declarados_devolve_so_padrao():
+    with patch.dict("os.environ", ENV_VARS, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert len(perfis) == 1
+        assert perfis[0]["nome"] == "Padrão (.env)"
+
+
+def test_carregar_perfis_perfis_vazia_devolve_so_padrao():
+    with patch.dict("os.environ", {**ENV_VARS, "PERFIS": ""}, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert len(perfis) == 1
+        assert perfis[0]["nome"] == "Padrão (.env)"
+
+
+# ---------- validar_perfil_digitado ----------
+
+def test_validar_perfil_digitado_tres_campos_validos_devolve_perfil_com_esses_valores():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "https://api.groq.com/openai/v1", "gsk_exemplo", "llama-3.3-70b-versatile"
+    )
+    assert motivo is None
+    assert perfil["base_url"] == "https://api.groq.com/openai/v1"
+    assert perfil["api_key"] == "gsk_exemplo"
+    assert perfil["modelo"] == "llama-3.3-70b-versatile"
+    assert perfil["disponivel"] is True
+
+
+def test_validar_perfil_digitado_base_url_vazia_nomeia_o_campo():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado("", "gsk_exemplo", "llama-3.3-70b-versatile")
+    assert perfil is None
+    assert "base URL" in motivo
+
+
+def test_validar_perfil_digitado_chave_so_com_espacos_nomeia_o_campo():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "https://api.groq.com/openai/v1", "   ", "llama-3.3-70b-versatile"
+    )
+    assert perfil is None
+    assert "chave" in motivo
+
+
+def test_validar_perfil_digitado_modelo_vazio_nomeia_o_campo():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "https://api.groq.com/openai/v1", "gsk_exemplo", ""
+    )
+    assert perfil is None
+    assert "modelo" in motivo
+
+
+def test_validar_perfil_digitado_url_sem_esquema_devolve_motivo_com_url_recebida():
+    from app_streamlit_core import validar_perfil_digitado
+    perfil, motivo = validar_perfil_digitado(
+        "api.groq.com/openai/v1", "gsk_exemplo", "llama-3.3-70b-versatile"
+    )
+    assert perfil is None
+    assert "api.groq.com/openai/v1" in motivo

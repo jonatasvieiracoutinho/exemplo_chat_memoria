@@ -1,7 +1,7 @@
 ---
 id: RF-PROV-01
 titulo: Troca de provedor de LLM em runtime pela tela
-status: pendente
+status: concluido
 depende_de: []
 bloqueia: []
 entrega_observavel: "na barra lateral do app Streamlit, escolher outro provedor (Perfil declarado no .env ou valores digitados na hora) e conversar contra ele sem editar arquivo e sem reiniciar o processo, na mesma sessão do navegador; quando o provedor falha, a tela mostra o texto da exceção com a chave mascarada, o que permite distinguir URL errada de chave inválida de modelo inexistente"

@@ -52,7 +52,7 @@ graph TD
 - **Interfaces**:
   - `persistencia_ativa() -> bool` — lê `PERSISTENCIA_SQLITE` do ambiente.
   - `construir_sessao_chat(gerenciador=None, thread_id=None) -> ChatComMemoria` — instancia `ChatComMemoria`, com `gerenciador`/`thread_id` quando a persistência está ativa. Reusa ctor existente.
-  - `sanitizar_erro(exc: Exception) -> str` — mensagem amigável fixa, sem chave/stack/detalhes.
+  - `sanitizar_erro(exc: Exception) -> str` — mensagem amigável fixa, sem chave/stack/detalhes. Superado por RF-PROV-01: passa a devolver o texto da exceção com a chave mascarada (ver `docs/requisitos/RF-PROV-01.md`).
   - `enviar_mensagem_seguro(chat, texto: str) -> tuple[str|None, str|None]` — `(resposta, None)` no sucesso; `(None, msg_sanitizada)` na exceção; ignora texto vazio/branco.
   - `historico_para_ui(chat) -> list[tuple[str, str]]` — pares `(role, content)` a partir de `chat.historico`.
   - `resumo_tokens(chat) -> dict` — `{"aproximado": int, "total_persistido": int|None}` via `contar_tokens_aproximado()` e, sob persistência com `thread_id`, `total_tokens_thread()`.
@@ -94,7 +94,7 @@ Nenhum modelo novo. Reuso integral do esquema SQLite existente (`threads`, `mens
 
 | Error Scenario | Handling | User Impact |
 | -------------- | -------- | ----------- |
-| Exceção em `enviar_mensagem()` | `enviar_mensagem_seguro` captura e retorna `sanitizar_erro()` | Vê aviso amigável; UI segue utilizável (STRM-05) |
+| Exceção em `enviar_mensagem()` | `enviar_mensagem_seguro` captura e retorna `sanitizar_erro()` | Vê aviso amigável; UI segue utilizável (STRM-05). Superado por RF-PROV-01: o aviso passa a ser o texto técnico da exceção mascarado. |
 | Mensagem vazia/branca | `enviar_mensagem_seguro` não chama a API | Estado inalterado |
 | `.venv` ausente nos scripts | `if` de checagem imprime erro e `exit 1` | Erro claro em vez de falha silenciosa (STRM-11/12) |
 | `total_tokens_thread` nulo/ausente | `resumo_tokens` cai para estimativa aproximada | Métrica sempre exibível (edge case) |

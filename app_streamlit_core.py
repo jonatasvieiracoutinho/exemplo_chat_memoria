@@ -7,6 +7,7 @@ negócio. `app_streamlit.py` faz apenas o wiring dos widgets.
 """
 
 import os
+import re
 import tempfile
 
 from chat_openai_memoria import ChatComMemoria
@@ -17,21 +18,171 @@ def persistencia_ativa() -> bool:
     return os.getenv("PERSISTENCIA_SQLITE", "false").lower() == "true"
 
 
-def construir_sessao_chat(gerenciador=None, thread_id=None) -> ChatComMemoria:
+def construir_sessao_chat(
+    gerenciador=None, thread_id=None, api_key=None, modelo=None, base_url=None
+) -> ChatComMemoria:
     """Instancia ChatComMemoria, repassando gerenciador/thread_id somente
-    quando a persistência está ativa."""
+    quando a persistência está ativa; api_key/modelo/base_url são sempre
+    repassados ao construtor, que decide a precedência sobre o ambiente."""
     if persistencia_ativa():
-        return ChatComMemoria(gerenciador=gerenciador, thread_id=thread_id)
-    return ChatComMemoria()
+        return ChatComMemoria(
+            gerenciador=gerenciador,
+            thread_id=thread_id,
+            api_key=api_key,
+            modelo=modelo,
+            base_url=base_url,
+        )
+    return ChatComMemoria(api_key=api_key, modelo=modelo, base_url=base_url)
 
 
-MENSAGEM_ERRO_AMIGAVEL = "Não foi possível obter resposta agora. Tente novamente em instantes."
+def mascarar_chave(texto: str, chaves) -> str:
+    """Substitui cada ocorrência de uma chave não vazia em `texto` por uma
+    máscara: 4 primeiros + `***` + 4 últimos quando a chave tem 12
+    caracteres ou mais, `***` inteiro quando tem menos."""
+    resultado = texto
+    for chave in chaves:
+        if not chave:
+            continue
+        if len(chave) >= 12:
+            mascara = f"{chave[:4]}***{chave[-4:]}"
+        else:
+            mascara = "***"
+        resultado = resultado.replace(chave, mascara)
+    return resultado
 
 
-def sanitizar_erro(exc: Exception) -> str:
-    """Converte qualquer exceção em mensagem amigável fixa, sem expor
-    chave, stack trace ou texto bruto da exceção."""
-    return MENSAGEM_ERRO_AMIGAVEL
+def _prefixo_perfil(nome: str) -> str:
+    """Normaliza o nome do Perfil no prefixo de variável de ambiente:
+    maiúsculas, todo caractere não alfanumérico trocado por `_`
+    (`Ollama local` -> `PERFIL_OLLAMA_LOCAL_`)."""
+    normalizado = re.sub(r"[^A-Za-z0-9]", "_", nome).upper()
+    return f"PERFIL_{normalizado}_"
+
+
+def carregar_perfis() -> list:
+    """Lê `os.environ` e devolve a lista de Perfis de provedor: sempre
+    começando por `Padrão (.env)` (montado das variáveis `OPENAI_*`),
+    seguida de cada nome declarado em `PERFIS`, na ordem declarada."""
+    perfis = [
+        {
+            "nome": "Padrão (.env)",
+            "base_url": os.getenv("OPENAI_BASE_URL"),
+            "api_key": os.getenv("OPENAI_API_KEY"),
+            "modelo": os.getenv("OPENAI_MODEL"),
+            "disponivel": True,
+            "motivo_indisponivel": None,
+        }
+    ]
+    nomes = [nome.strip() for nome in os.getenv("PERFIS", "").split(",") if nome.strip()]
+    vistos = set()
+    for nome in nomes:
+        if nome in vistos:
+            continue
+        vistos.add(nome)
+        prefixo = _prefixo_perfil(nome)
+        base_url = os.getenv(f"{prefixo}BASE_URL")
+        api_key = os.getenv(f"{prefixo}API_KEY")
+        modelo = os.getenv(f"{prefixo}MODEL")
+        variavel_ausente = next(
+            (
+                f"{prefixo}{sufixo}"
+                for sufixo, valor in (("BASE_URL", base_url), ("API_KEY", api_key), ("MODEL", modelo))
+                if not valor or not valor.strip()
+            ),
+            None,
+        )
+        if variavel_ausente:
+            perfis.append(
+                {
+                    "nome": nome,
+                    "base_url": None,
+                    "api_key": None,
+                    "modelo": None,
+                    "disponivel": False,
+                    "motivo_indisponivel": f"Perfil {nome}: variável {variavel_ausente} ausente ou vazia",
+                }
+            )
+            continue
+        if not (base_url.startswith("http://") or base_url.startswith("https://")):
+            perfis.append(
+                {
+                    "nome": nome,
+                    "base_url": None,
+                    "api_key": None,
+                    "modelo": None,
+                    "disponivel": False,
+                    "motivo_indisponivel": (
+                        f"Perfil {nome}: base URL '{base_url}' não começa com http:// nem https://"
+                    ),
+                }
+            )
+            continue
+        perfis.append(
+            {
+                "nome": nome,
+                "base_url": base_url,
+                "api_key": api_key,
+                "modelo": modelo,
+                "disponivel": True,
+                "motivo_indisponivel": None,
+            }
+        )
+    return perfis
+
+
+def trocar_perfil(perfil: dict, gerenciador=None, thread_id=None):
+    """Valida o Perfil escolhido e constrói a sessão nova antes de qualquer
+    descarte da anterior.
+
+    Perfil indisponível devolve `(None, motivo)` sem chamar o construtor.
+    `ValueError` do construtor é capturada e devolvida como motivo, sem
+    propagar. Sucesso devolve `(chat_novo, None)`. Não lê nem escreve
+    `st.session_state` e não importa `streamlit`."""
+    if not perfil["disponivel"]:
+        return None, perfil["motivo_indisponivel"]
+    try:
+        chat_novo = construir_sessao_chat(
+            gerenciador=gerenciador,
+            thread_id=thread_id,
+            api_key=perfil["api_key"],
+            modelo=perfil["modelo"],
+            base_url=perfil["base_url"],
+        )
+    except ValueError as exc:
+        return None, str(exc)
+    return chat_novo, None
+
+
+def validar_perfil_digitado(base_url: str, api_key: str, modelo: str):
+    """Valida os três campos do Perfil digitado na barra lateral.
+
+    Devolve `(perfil, None)` com o Perfil montado quando os três campos
+    estão preenchidos e a base URL tem esquema; devolve `(None, motivo)`
+    nomeando o campo obrigatório ausente ou a URL recebida sem esquema.
+    Não registra em log nem grava em disco os valores recebidos."""
+    for nome_campo, valor in (("base URL", base_url), ("chave", api_key), ("modelo", modelo)):
+        if not valor or not valor.strip():
+            return None, f"Perfil digitado: campo {nome_campo} é obrigatório"
+    if not (base_url.startswith("http://") or base_url.startswith("https://")):
+        return None, f"Perfil digitado: base URL '{base_url}' não começa com http:// nem https://"
+    return {
+        "nome": "Perfil digitado",
+        "base_url": base_url,
+        "api_key": api_key,
+        "modelo": modelo,
+        "disponivel": True,
+        "motivo_indisponivel": None,
+    }, None
+
+
+def sanitizar_erro(exc: Exception, chat=None) -> str:
+    """Converte a exceção no seu texto com a chave ativa mascarada.
+
+    A chave ativa vem de `chat.api_key` (não de `os.environ`, porque um
+    override por Perfil pode não estar no ambiente); `OPENAI_API_KEY`
+    também é mascarada quando presente."""
+    chave_ativa = getattr(chat, "api_key", None) if chat is not None else None
+    return mascarar_chave(str(exc), [chave_ativa, os.getenv("OPENAI_API_KEY")])
 
 
 def enviar_mensagem_seguro(chat, texto: str):
@@ -45,7 +196,7 @@ def enviar_mensagem_seguro(chat, texto: str):
     try:
         return chat.enviar_mensagem(texto), None
     except Exception as exc:
-        return None, sanitizar_erro(exc)
+        return None, sanitizar_erro(exc, chat)
 
 
 def historico_para_ui(chat) -> list:
@@ -69,10 +220,13 @@ def listar_threads(gerenciador) -> list:
     return gerenciador.listar_threads()
 
 
-def retomar_thread(gerenciador, thread_id) -> ChatComMemoria:
+def retomar_thread(gerenciador, thread_id, api_key=None, modelo=None, base_url=None) -> ChatComMemoria:
     """Reconstrói `ChatComMemoria` com o `thread_id` selecionado, carregando
-    seu histórico a partir da persistência."""
-    return construir_sessao_chat(gerenciador=gerenciador, thread_id=thread_id)
+    seu histórico a partir da persistência, usando o Perfil informado no
+    momento da chamada (não o que gerou a thread)."""
+    return construir_sessao_chat(
+        gerenciador=gerenciador, thread_id=thread_id, api_key=api_key, modelo=modelo, base_url=base_url
+    )
 
 
 def excluir_thread(gerenciador, thread_id) -> bool:
