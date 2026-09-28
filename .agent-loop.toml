@@ -20,7 +20,7 @@ padrao_plano = ".specs/features/{item}/tasks.md"
 
 # A fila. VAZIA de propósito: ela vem da skill `preparar-requisitos`, que grava a ordem
 # topológica em docs/requisitos/FILA.md. Copie a linha `fila:` de lá para cá.
-itens = []
+itens = ["RF-PROV-01"]
 
 # --- os três estágios do ciclo -----------------------------------------------------------
 #
