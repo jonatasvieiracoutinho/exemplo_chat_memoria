@@ -342,13 +342,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] O arquivo traz `PERFIS=` com o exemplo `Groq,Ollama local` comentado
-- [ ] O trio de variáveis de `Groq` aparece como exemplo
-- [ ] O comentário registra que a chave é obrigatória em todo Perfil, inclusive provedor local
-- [ ] Nenhum valor real de chave entra no arquivo
-- [ ] Teste novo em `tests/test_docs_superacao_rf_prov_01.py` confirma a presença do bloco no `env.example`
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 1 teste novo passa e a suíte inteira segue verde
+- [x] O arquivo traz `PERFIS=` com o exemplo `Groq,Ollama local` comentado
+- [x] O trio de variáveis de `Groq` aparece como exemplo
+- [x] O comentário registra que a chave é obrigatória em todo Perfil, inclusive provedor local
+- [x] Nenhum valor real de chave entra no arquivo
+- [x] Teste novo em `tests/test_docs_superacao_rf_prov_01.py` confirma a presença do bloco no `env.example`
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 1 teste novo passa e a suíte inteira segue verde
 
 **Tests**: unit
 **Gate**: full

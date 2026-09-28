@@ -34,3 +34,12 @@ def test_prd_streamlit_traz_nota_de_superacao_no_ca07():
     assert "RF-PROV-01" in conteudo
     assert "CA-07" in conteudo
     assert "Erros da API são exibidos de forma amigável, sem vazar chave nem detalhes" in conteudo
+
+
+def test_env_example_documenta_bloco_de_perfis():
+    conteudo = _ler("env.example")
+    assert "PERFIS=Groq,Ollama local" in conteudo
+    assert "PERFIL_GROQ_BASE_URL" in conteudo
+    assert "PERFIL_GROQ_API_KEY" in conteudo
+    assert "PERFIL_GROQ_MODEL" in conteudo
+    assert "obrigatória em todo Perfil" in conteudo
