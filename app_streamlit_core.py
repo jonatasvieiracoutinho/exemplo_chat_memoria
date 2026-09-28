@@ -41,13 +41,14 @@ def mascarar_chave(texto: str, chaves) -> str:
     return resultado
 
 
-MENSAGEM_ERRO_AMIGAVEL = "Não foi possível obter resposta agora. Tente novamente em instantes."
+def sanitizar_erro(exc: Exception, chat=None) -> str:
+    """Converte a exceção no seu texto com a chave ativa mascarada.
 
-
-def sanitizar_erro(exc: Exception) -> str:
-    """Converte qualquer exceção em mensagem amigável fixa, sem expor
-    chave, stack trace ou texto bruto da exceção."""
-    return MENSAGEM_ERRO_AMIGAVEL
+    A chave ativa vem de `chat.api_key` (não de `os.environ`, porque um
+    override por Perfil pode não estar no ambiente); `OPENAI_API_KEY`
+    também é mascarada quando presente."""
+    chave_ativa = getattr(chat, "api_key", None) if chat is not None else None
+    return mascarar_chave(str(exc), [chave_ativa, os.getenv("OPENAI_API_KEY")])
 
 
 def enviar_mensagem_seguro(chat, texto: str):
@@ -61,7 +62,7 @@ def enviar_mensagem_seguro(chat, texto: str):
     try:
         return chat.enviar_mensagem(texto), None
     except Exception as exc:
-        return None, sanitizar_erro(exc)
+        return None, sanitizar_erro(exc, chat)
 
 
 def historico_para_ui(chat) -> list:

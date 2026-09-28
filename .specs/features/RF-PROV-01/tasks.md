@@ -136,14 +136,14 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] O texto devolvido contém o conteúdo da exceção (`Incorrect API key provided`) e não a chave crua
-- [ ] A chave **ativa** vem do atributo `api_key` do objeto de chat, não de `os.environ`
-- [ ] `OPENAI_API_KEY` também é mascarada quando existe e difere da ativa
-- [ ] Texto vazio ou só espaços continua não chamando a API e não alterando o histórico
-- [ ] `MENSAGEM_ERRO_AMIGAVEL` não existe mais no módulo
-- [ ] Os três testes de `tests/test_app_streamlit_core.py` que travavam o texto fixo passam a travar a mascaração, sem serem apagados
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: 112 testes atuais menos as assertivas reescritas, mais ao menos 3 novos, todos passando
+- [x] O texto devolvido contém o conteúdo da exceção (`Incorrect API key provided`) e não a chave crua
+- [x] A chave **ativa** vem do atributo `api_key` do objeto de chat, não de `os.environ`
+- [x] `OPENAI_API_KEY` também é mascarada quando existe e difere da ativa
+- [x] Texto vazio ou só espaços continua não chamando a API e não alterando o histórico
+- [x] `MENSAGEM_ERRO_AMIGAVEL` não existe mais no módulo
+- [x] Os três testes de `tests/test_app_streamlit_core.py` que travavam o texto fixo passam a travar a mascaração, sem serem apagados
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: 112 testes atuais menos as assertivas reescritas, mais ao menos 3 novos, todos passando
 
 **Tests**: unit
 **Gate**: full
