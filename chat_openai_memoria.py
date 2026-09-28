@@ -110,7 +110,7 @@ class ChatComMemoria:
     """Classe para gerenciar chat com memória usando OpenAI API
        Todas as configurações são carregadas do arquivo .env"""
 
-    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None, stream: bool = None, gerenciador=None, thread_id: int = None):
+    def __init__(self, tamanho_janela: int = None, limite_maximo: int = None, modo_debug: bool = None, stream: bool = None, gerenciador=None, thread_id: int = None, api_key: str = None, modelo: str = None, base_url: str = None):
         """
         Inicializa o chat com memória.
 
@@ -130,21 +130,27 @@ class ChatComMemoria:
         # Carregar .env OBRIGATORIAMENTE
         load_dotenv()
 
-        # Validar API Key
-        self.api_key = os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise ValueError(
-                "OPENAI_API_KEY não configurada. "
-                "Crie o arquivo .env com: OPENAI_API_KEY=sua-chave-aqui"
-            )
+        # Validar API Key (parâmetro vence ambiente; None = leia do ambiente)
+        if api_key is None:
+            self.api_key = os.getenv("OPENAI_API_KEY")
+            if not self.api_key:
+                raise ValueError(
+                    "OPENAI_API_KEY não configurada. "
+                    "Crie o arquivo .env com: OPENAI_API_KEY=sua-chave-aqui"
+                )
+        else:
+            self.api_key = api_key
 
-        # Validar Modelo
-        self.modelo = os.getenv("OPENAI_MODEL")
-        if not self.modelo:
-            raise ValueError(
-                "OPENAI_MODEL não configurada. "
-                "Adicione no arquivo .env: OPENAI_MODEL=gpt-4o-mini"
-            )
+        # Validar Modelo (parâmetro vence ambiente; None = leia do ambiente)
+        if modelo is None:
+            self.modelo = os.getenv("OPENAI_MODEL")
+            if not self.modelo:
+                raise ValueError(
+                    "OPENAI_MODEL não configurada. "
+                    "Adicione no arquivo .env: OPENAI_MODEL=gpt-4o-mini"
+                )
+        else:
+            self.modelo = modelo
 
         # Validar Temperature
         temp_str = os.getenv("OPENAI_TEMPERATURE")
@@ -184,8 +190,8 @@ class ChatComMemoria:
                 ) from e
             raise
 
-        # Validar Base URL (opcional)
-        self.base_url = os.getenv("OPENAI_BASE_URL")
+        # Validar Base URL (opcional; parâmetro vence ambiente; None = leia do ambiente)
+        self.base_url = os.getenv("OPENAI_BASE_URL") if base_url is None else base_url
         if self.base_url:
             # Validar formato básico de URL
             if not (self.base_url.startswith("http://") or self.base_url.startswith("https://")):

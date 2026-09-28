@@ -372,15 +372,15 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] Sem os três parâmetros, os atributos valem exatamente o que o ambiente declara, com as mesmas validações e mensagens citando o `.env`
-- [ ] Com os três passados, os atributos valem os valores passados e o ambiente é ignorado para eles
-- [ ] Passando só `base_url`, `api_key` e `modelo` continuam vindo do ambiente
-- [ ] Com `OPENAI_API_KEY` ausente e `api_key` por parâmetro, a construção conclui sem exceção; o mesmo para `OPENAI_MODEL` e `modelo`
-- [ ] `OPENAI_TEMPERATURE` e `OPENAI_MAX_TOKENS` continuam obrigatórios no ambiente e falham como hoje
-- [ ] Nenhum caminho de código escreve em `os.environ`
-- [ ] Testes novos cobrem o caminho **sem** parâmetro e discriminam a inversão da precedência
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
+- [x] Sem os três parâmetros, os atributos valem exatamente o que o ambiente declara, com as mesmas validações e mensagens citando o `.env`
+- [x] Com os três passados, os atributos valem os valores passados e o ambiente é ignorado para eles
+- [x] Passando só `base_url`, `api_key` e `modelo` continuam vindo do ambiente
+- [x] Com `OPENAI_API_KEY` ausente e `api_key` por parâmetro, a construção conclui sem exceção; o mesmo para `OPENAI_MODEL` e `modelo`
+- [x] `OPENAI_TEMPERATURE` e `OPENAI_MAX_TOKENS` continuam obrigatórios no ambiente e falham como hoje
+- [x] Nenhum caminho de código escreve em `os.environ`
+- [x] Testes novos cobrem o caminho **sem** parâmetro e discriminam a inversão da precedência
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
 
 **Tests**: unit
 **Gate**: full

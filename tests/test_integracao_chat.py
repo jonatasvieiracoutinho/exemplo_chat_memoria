@@ -305,3 +305,69 @@ def test_durabilidade_tokens_apos_reabrir_banco(tmp_path):
     assert len(turnos) == 1
     assert turnos[0]["prompt_tokens"] == 10
     assert total["total_tokens"] == 30
+
+
+# ---------- override de api_key, modelo e base_url no construtor ----------
+
+def _construir_chat(**kwargs):
+    with patch("chat_openai_memoria.load_dotenv"):
+        with patch("chat_openai_memoria.OpenAI") as mock_openai:
+            mock_openai.return_value = MagicMock()
+            from chat_openai_memoria import ChatComMemoria
+            with patch("builtins.print"):
+                return ChatComMemoria(**kwargs)
+
+
+def test_sem_parametros_novos_atributos_vem_do_ambiente_como_hoje():
+    with patch.dict("os.environ", ENV_VARS):
+        chat = _construir_chat()
+    assert chat.api_key == "sk-test-key"
+    assert chat.modelo == "gpt-4o-mini"
+    assert chat.base_url is None
+
+
+def test_parametros_novos_vencem_o_ambiente():
+    with patch.dict("os.environ", ENV_VARS):
+        chat = _construir_chat(
+            api_key="sk-do-parametro",
+            modelo="modelo-do-parametro",
+            base_url="https://api.groq.com/openai/v1",
+        )
+    assert chat.api_key == "sk-do-parametro"
+    assert chat.modelo == "modelo-do-parametro"
+    assert chat.base_url == "https://api.groq.com/openai/v1"
+
+
+def test_somente_base_url_por_parametro_mantem_api_key_e_modelo_do_ambiente():
+    with patch.dict("os.environ", ENV_VARS):
+        chat = _construir_chat(base_url="https://api.groq.com/openai/v1")
+    assert chat.api_key == "sk-test-key"
+    assert chat.modelo == "gpt-4o-mini"
+    assert chat.base_url == "https://api.groq.com/openai/v1"
+
+
+def test_api_key_por_parametro_permite_ambiente_sem_openai_api_key():
+    env_sem_chave = {k: v for k, v in ENV_VARS.items() if k != "OPENAI_API_KEY"}
+    with patch.dict("os.environ", env_sem_chave, clear=True):
+        chat = _construir_chat(api_key="sk-do-parametro")
+    assert chat.api_key == "sk-do-parametro"
+
+
+def test_modelo_por_parametro_permite_ambiente_sem_openai_model():
+    env_sem_modelo = {k: v for k, v in ENV_VARS.items() if k != "OPENAI_MODEL"}
+    with patch.dict("os.environ", env_sem_modelo, clear=True):
+        chat = _construir_chat(modelo="modelo-do-parametro")
+    assert chat.modelo == "modelo-do-parametro"
+
+
+def test_parametros_novos_nao_escrevem_em_os_environ():
+    import os
+    with patch.dict("os.environ", ENV_VARS):
+        _construir_chat(
+            api_key="sk-do-parametro",
+            modelo="modelo-do-parametro",
+            base_url="https://api.groq.com/openai/v1",
+        )
+        assert os.environ["OPENAI_API_KEY"] == "sk-test-key"
+        assert os.environ["OPENAI_MODEL"] == "gpt-4o-mini"
+        assert "OPENAI_BASE_URL" not in os.environ
