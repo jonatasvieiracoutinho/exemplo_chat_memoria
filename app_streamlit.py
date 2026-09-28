@@ -8,6 +8,7 @@ conecta os widgets do Streamlit ao núcleo e mantém o estado da sessão.
 import streamlit as st
 
 from app_streamlit_core import (
+    carregar_perfis,
     construir_sessao_chat,
     enviar_mensagem_seguro,
     exportar_conversa_texto,
@@ -17,18 +18,22 @@ from app_streamlit_core import (
     persistencia_ativa,
     resumo_tokens,
     retomar_thread,
+    trocar_perfil,
 )
 from persistencia import GerenciadorPersistencia
 
+PERFIL_PADRAO = "Padrão (.env)"
+
 
 def inicializar_estado():
-    """Inicializa `chat`, `thread_id` e `gerenciador` em st.session_state
-    uma única vez por sessão de navegador."""
+    """Inicializa `chat`, `thread_id`, `gerenciador` e `perfil_ativo` em
+    st.session_state uma única vez por sessão de navegador."""
     if "chat" not in st.session_state:
         gerenciador = GerenciadorPersistencia() if persistencia_ativa() else None
         st.session_state["gerenciador"] = gerenciador
         st.session_state["chat"] = construir_sessao_chat(gerenciador=gerenciador)
         st.session_state["thread_id"] = st.session_state["chat"].thread_id
+        st.session_state["perfil_ativo"] = PERFIL_PADRAO
 
 
 def main():
@@ -70,6 +75,26 @@ def main():
                 if st.button("Excluir thread"):
                     excluir_thread(gerenciador, thread_escolhida)
                     st.rerun()
+
+        st.header("Provedor")
+        perfil_ativo = st.session_state["perfil_ativo"]
+        st.caption(
+            f"Ativo: {perfil_ativo} · base URL: {chat.base_url or '(padrão da OpenAI)'} · modelo: {chat.modelo}"
+        )
+        perfis = carregar_perfis()
+        nomes = [perfil["nome"] for perfil in perfis]
+        indice_atual = nomes.index(perfil_ativo) if perfil_ativo in nomes else 0
+        nome_escolhido = st.selectbox("Trocar Perfil de provedor", options=nomes, index=indice_atual)
+        if st.button("Confirmar Perfil"):
+            perfil_escolhido = next(perfil for perfil in perfis if perfil["nome"] == nome_escolhido)
+            chat_novo, motivo = trocar_perfil(perfil_escolhido, gerenciador=st.session_state["gerenciador"])
+            if chat_novo is not None:
+                st.session_state["chat"] = chat_novo
+                st.session_state["thread_id"] = None
+                st.session_state["perfil_ativo"] = nome_escolhido
+                st.rerun()
+            else:
+                st.error(motivo)
 
     for role, content in historico_para_ui(chat):
         with st.chat_message(role):

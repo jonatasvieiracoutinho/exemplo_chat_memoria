@@ -494,15 +494,15 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] A sessão nova recebe base URL, chave e modelo do Perfil escolhido
-- [ ] A área de conversa esvazia após a troca bem-sucedida
-- [ ] A barra lateral mostra o Perfil ativo com nome, base URL e modelo
-- [ ] Nenhum texto renderizado na tela contém a chave do Perfil
-- [ ] Na criação da sessão do navegador, `Padrão (.env)` está selecionado e a sessão vem do ambiente
-- [ ] O `gerenciador` é o mesmo objeto antes e depois da troca
-- [ ] Testes novos com `AppTest` discriminam a sessão construída sem repassar os três valores e a impressão da chave no resumo
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
-- [ ] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
+- [x] A sessão nova recebe base URL, chave e modelo do Perfil escolhido
+- [x] A área de conversa esvazia após a troca bem-sucedida
+- [x] A barra lateral mostra o Perfil ativo com nome, base URL e modelo
+- [x] Nenhum texto renderizado na tela contém a chave do Perfil
+- [x] Na criação da sessão do navegador, `Padrão (.env)` está selecionado e a sessão vem do ambiente
+- [x] O `gerenciador` é o mesmo objeto antes e depois da troca
+- [x] Testes novos com `AppTest` discriminam a sessão construída sem repassar os três valores e a impressão da chave no resumo
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/`
+- [x] Test count: ao menos 4 testes novos passam e a suíte inteira segue verde
 
 **Tests**: integration
 **Gate**: full
