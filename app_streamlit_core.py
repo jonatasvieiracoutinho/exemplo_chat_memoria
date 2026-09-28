@@ -67,12 +67,35 @@ def carregar_perfis() -> list:
     nomes = [nome.strip() for nome in os.getenv("PERFIS", "").split(",") if nome.strip()]
     for nome in nomes:
         prefixo = _prefixo_perfil(nome)
+        base_url = os.getenv(f"{prefixo}BASE_URL")
+        api_key = os.getenv(f"{prefixo}API_KEY")
+        modelo = os.getenv(f"{prefixo}MODEL")
+        variavel_ausente = next(
+            (
+                f"{prefixo}{sufixo}"
+                for sufixo, valor in (("BASE_URL", base_url), ("API_KEY", api_key), ("MODEL", modelo))
+                if not valor or not valor.strip()
+            ),
+            None,
+        )
+        if variavel_ausente:
+            perfis.append(
+                {
+                    "nome": nome,
+                    "base_url": None,
+                    "api_key": None,
+                    "modelo": None,
+                    "disponivel": False,
+                    "motivo_indisponivel": f"Perfil {nome}: variável {variavel_ausente} ausente ou vazia",
+                }
+            )
+            continue
         perfis.append(
             {
                 "nome": nome,
-                "base_url": os.getenv(f"{prefixo}BASE_URL"),
-                "api_key": os.getenv(f"{prefixo}API_KEY"),
-                "modelo": os.getenv(f"{prefixo}MODEL"),
+                "base_url": base_url,
+                "api_key": api_key,
+                "modelo": modelo,
                 "disponivel": True,
                 "motivo_indisponivel": None,
             }

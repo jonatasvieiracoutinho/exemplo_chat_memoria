@@ -300,3 +300,39 @@ def test_carregar_perfis_normaliza_nome_com_espaco_para_prefixo():
         perfis = carregar_perfis()
         assert perfis[1]["nome"] == "Ollama local"
         assert perfis[1]["base_url"] == "http://localhost:11434/v1"
+
+
+# ---------- carregar_perfis: bloco incompleto ----------
+
+def test_carregar_perfis_bloco_incompleto_fica_indisponivel_e_permanece_na_lista():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Ollama local",
+        "PERFIL_OLLAMA_LOCAL_BASE_URL": "http://localhost:11434/v1",
+        "PERFIL_OLLAMA_LOCAL_API_KEY": "ollama",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        nomes = [perfil["nome"] for perfil in perfis]
+        assert "Ollama local" in nomes
+        perfil = perfis[1]
+        assert perfil["disponivel"] is False
+        assert "PERFIL_OLLAMA_LOCAL_MODEL" in perfil["motivo_indisponivel"]
+        assert "Ollama local" in perfil["motivo_indisponivel"]
+        assert perfil["modelo"] is None
+
+
+def test_carregar_perfis_variavel_so_com_espacos_conta_como_ausente():
+    env = {
+        **ENV_VARS,
+        "PERFIS": "Groq",
+        "PERFIL_GROQ_BASE_URL": "https://api.groq.com/openai/v1",
+        "PERFIL_GROQ_API_KEY": "gsk_exemplo",
+        "PERFIL_GROQ_MODEL": "   ",
+    }
+    with patch.dict("os.environ", env, clear=True):
+        from app_streamlit_core import carregar_perfis
+        perfis = carregar_perfis()
+        assert perfis[1]["disponivel"] is False
+        assert "PERFIL_GROQ_MODEL" in perfis[1]["motivo_indisponivel"]

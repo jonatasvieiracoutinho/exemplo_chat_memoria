@@ -283,13 +283,13 @@ T16 → T17 → T18
 
 **Done when**:
 
-- [ ] Apagar `PERFIL_OLLAMA_LOCAL_MODEL` produz `disponivel: False` com `PERFIL_OLLAMA_LOCAL_MODEL` e o nome do Perfil no motivo
-- [ ] O Perfil indisponível continua **na** lista, e não ausente dela
-- [ ] Nenhuma exceção é levantada; os três valores podem vir `None`
-- [ ] Variável presente mas vazia ou só com espaços conta como ausente
-- [ ] Teste novo discrimina as duas mutações: Perfil ausente da lista e Perfil com modelo `None` marcado disponível
-- [ ] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
-- [ ] Test count: ao menos 2 testes novos passam
+- [x] Apagar `PERFIL_OLLAMA_LOCAL_MODEL` produz `disponivel: False` com `PERFIL_OLLAMA_LOCAL_MODEL` e o nome do Perfil no motivo
+- [x] O Perfil indisponível continua **na** lista, e não ausente dela
+- [x] Nenhuma exceção é levantada; os três valores podem vir `None`
+- [x] Variável presente mas vazia ou só com espaços conta como ausente
+- [x] Teste novo discrimina as duas mutações: Perfil ausente da lista e Perfil com modelo `None` marcado disponível
+- [x] Gate check passes: `.venv/Scripts/python.exe -m pytest tests/test_app_streamlit_core.py`
+- [x] Test count: ao menos 2 testes novos passam
 
 **Tests**: unit
 **Gate**: quick
